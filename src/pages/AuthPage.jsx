@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, TEST_USER } from '../store';
-import { signInWithPopup, provider, auth } from '../firebase';
+import { signInWithPopup, provider, auth, isConfigured } from '../firebase';
 import { LogIn, User, ShieldCheck, Zap } from 'lucide-react';
 import './AuthPage.css';
 
@@ -9,6 +9,10 @@ const AuthPage = () => {
     const [loading, setLoading] = useState(false);
 
     const handleGoogleLogin = async () => {
+        if (!isConfigured) {
+            addToast('Firebase credentials missing! Please add them to Vercel env vars.', 'error');
+            return;
+        }
         setLoading(true);
         try {
             await signInWithPopup(auth, provider);

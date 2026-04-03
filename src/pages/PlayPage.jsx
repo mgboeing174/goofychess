@@ -50,8 +50,8 @@ const PlayPage = () => {
     const [selectedTime, setSelectedTime] = useState(TIME_CONTROLS[1]);
     
     // Chess logic
-    const [chess] = useState(new Chess());
-    const [board, setBoard] = useState(chess.fen());
+    const gameRef = useRef(new Chess());
+    const [board, setBoard] = useState(gameRef.current.fen());
     const [gameState, setGameState] = useState('idle'); // 'idle', 'searching', 'playing', 'ended'
     const [playerColor, setPlayerColor] = useState('w');
     
@@ -60,20 +60,10 @@ const PlayPage = () => {
     const [opponentTime, setOpponentTime] = useState(600);
     const timerRef = useRef(null);
 
-    // Dynamic scale for mobile
-    const [boardScale, setBoardScale] = useState(window.innerWidth > 900 ? 64 : 45);
-
-    useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth;
-            if (width < 500) setBoardScale(Math.floor((width - 40) / 8));
-            else if (width < 900) setBoardScale(50);
-            else setBoardScale(64);
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const playSound = (type) => {
+        const audio = new Audio(`/sounds/${type}.mp3`);
+        audio.play().catch(() => {}); // ignore if sound is missing
+    };
 
     const handleMove = (sourceSquare, targetSquare) => {
         if (gameState !== 'playing') return false;
@@ -81,22 +71,25 @@ const PlayPage = () => {
         const move = {
             from: sourceSquare,
             to: targetSquare,
-            promotion: 'q', // Always promote to queen for simplicity
+            promotion: 'q',
         };
         
         try {
-            const result = chess.move(move);
-            if (!result) return false;
+            const result = gameRef.current.move(move);
+            if (!result) {
+                addToast('Illegal move!', 'error');
+                return false;
+            }
             
-            setBoard(chess.fen());
+            setBoard(gameRef.current.fen());
+            playSound(result.captured ? 'capture' : 'move');
             
-            if (chess.isGameOver()) {
+            if (gameRef.current.isGameOver()) {
                 setGameState('ended');
                 addToast('Game Over!', 'info');
             }
             
-            // Bot logic
-            if (gameMode === 'bot' && !chess.isGameOver()) {
+            if (gameMode === 'bot' && !gameRef.current.isGameOver()) {
                 setTimeout(makeBotMove, 500);
             }
             
@@ -105,19 +98,20 @@ const PlayPage = () => {
     };
 
     const makeBotMove = () => {
-        const moves = chess.moves();
+        const moves = gameRef.current.moves();
         const move = moves[Math.floor(Math.random() * moves.length)];
-        chess.move(move);
-        setBoard(chess.fen());
-        if (chess.isGameOver()) {
+        const result = gameRef.current.move(move);
+        setBoard(gameRef.current.fen());
+        playSound(result.captured ? 'capture' : 'move');
+        if (gameRef.current.isGameOver()) {
             setGameState('ended');
             addToast('Bot wins!', 'error');
         }
     };
 
     const startBotGame = () => {
-        chess.reset();
-        setBoard(chess.fen());
+        gameRef.current.reset();
+        setBoard(gameRef.current.fen());
         setGameState('playing');
         setGameMode('bot');
         setScreen('game');

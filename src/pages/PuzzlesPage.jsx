@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from '../components/ChessBoard';
 import { Trophy, Target, ChevronRight, CheckCircle2, Lock, Zap } from 'lucide-react';
@@ -14,8 +14,8 @@ const PUZZLE_NODES = [
 
 const PuzzlesPage = () => {
     const [selectedLevel, setSelectedLevel] = useState(PUZZLE_NODES[0]);
-    const [chess] = useState(new Chess());
-    const [board, setBoard] = useState(chess.fen());
+    const gameRef = useRef(new Chess());
+    const [board, setBoard] = useState(gameRef.current.fen());
     const [boardScale, setBoardScale] = useState(64);
 
     const handleMove = (sourceSquare, targetSquare) => {
@@ -25,9 +25,9 @@ const PuzzlesPage = () => {
                 to: targetSquare,
                 promotion: 'q',
             };
-            const result = chess.move(move);
+            const result = gameRef.current.move(move);
             if (!result) return false;
-            setBoard(chess.fen());
+            setBoard(gameRef.current.fen());
             return true;
         } catch (e) {
             return false;
