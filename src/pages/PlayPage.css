@@ -1,0 +1,121 @@
+.play-container {
+  padding: 40px;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lobby-title {
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.lobby-cards {
+  display: flex;
+  gap: 30px;
+}
+
+.lobby-card {
+  flex: 1;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.lobby-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--accent);
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+}
+
+.lobby-card h3 {
+  font-size: 1.5rem;
+  margin: 20px 0 10px;
+}
+
+.lobby-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.game-setup {
+  width: 100%;
+  max-width: 500px;
+}
+
+.setup-section {
+  margin: 30px 0;
+}
+
+.setup-section label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 15px;
+}
+
+.difficulty-grid, .time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+.diff-btn, .time-btn {
+  padding: 15px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.diff-btn.active, .time-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.setup-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 40px;
+}
+
+.game-screen {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.game-info {
+  width: 300px;
+  padding: 25px;
+}
+
+.hud-header {
+  font-size: 0.9rem;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .game-screen {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .lobby-cards {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,11 @@
+.chessboard-container {
+  padding: 15px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+  border: 1px solid var(--border-accent);
+}
+
+.chessboard-container:hover {
+  box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
+}
