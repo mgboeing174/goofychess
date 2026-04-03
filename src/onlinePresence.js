@@ -1,7 +1,7 @@
-import { db, ref, set, onValue, onDisconnect, get } from './firebase';
+import { db, ref, set, onValue, onDisconnect, get, isConfigured } from './firebase';
 
 export const updatePresence = (uid, username, status = 'online') => {
-    if (!db || !uid) return;
+    if (!isConfigured || !db || !uid) return;
     const presenceRef = ref(db, `status/${uid}`);
     set(presenceRef, {
         username,
@@ -15,7 +15,7 @@ export const updatePresence = (uid, username, status = 'online') => {
 };
 
 export const listenToOnlineUsers = (callback) => {
-    if (!db) return () => {};
+    if (!isConfigured || !db) return () => {};
     const statusRef = ref(db, 'status');
     return onValue(statusRef, (snapshot) => {
         const data = snapshot.val();

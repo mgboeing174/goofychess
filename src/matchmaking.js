@@ -1,5 +1,5 @@
 // src/matchmaking.js — Real-time matchmaking + live game sync via Firebase
-import { db, ref, set, onValue, push, remove, update, onDisconnect, get } from './firebase';
+import { db, ref, set, onValue, push, remove, update, onDisconnect, get, isConfigured } from './firebase';
 
 const getQueuePath = (timeControl) => {
     const inc = timeControl.increment || 0;
@@ -7,7 +7,7 @@ const getQueuePath = (timeControl) => {
 };
 
 export const joinQueue = async (user, timeControl) => {
-    if (!db) throw new Error('Firebase not configured');
+    if (!isConfigured || !db) throw new Error('Firebase not configured');
     const queuePath = getQueuePath(timeControl);
     const queueRef = ref(db, queuePath);
     const newEntry = push(queueRef);
@@ -33,12 +33,12 @@ export const joinQueue = async (user, timeControl) => {
 };
 
 export const leaveQueue = async (queuePath, entryKey) => {
-    if (!db || !entryKey || !queuePath) return;
+    if (!isConfigured || !db || !entryKey || !queuePath) return;
     await remove(ref(db, `${queuePath}/${entryKey}`));
 };
 
 export const watchQueue = (user, timeControl, entryKey, queuePath, onMatchFound) => {
-    if (!db) return () => {};
+    if (!isConfigured || !db) return () => {};
 
     const queueRef = ref(db, queuePath);
     let matched = false;
@@ -109,7 +109,7 @@ export const watchQueue = (user, timeControl, entryKey, queuePath, onMatchFound)
 };
 
 export const listenForMyGame = (uid, onGameFound) => {
-    if (!db || !uid) return () => {};
+    if (!isConfigured || !db || !uid) return () => {};
     const gamesRef = ref(db, 'games');
     let found = false;
 
@@ -143,7 +143,7 @@ export const listenForMyGame = (uid, onGameFound) => {
 };
 
 export const submitMove = async (gameId, moveData, newFen, movesArray, timerUpdate) => {
-    if (!db || !gameId) return;
+    if (!isConfigured || !db || !gameId) return;
     const updates = {
         fen: newFen,
         moves: movesArray,
@@ -157,7 +157,7 @@ export const submitMove = async (gameId, moveData, newFen, movesArray, timerUpda
 };
 
 export const endOnlineGame = async (gameId, winnerUid, reason) => {
-    if (!db || !gameId) return;
+    if (!isConfigured || !db || !gameId) return;
     await update(ref(db, `games/${gameId}`), {
         status: 'ended',
         result: { winner: winnerUid, reason },
