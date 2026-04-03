@@ -11,7 +11,7 @@ import AuthPage from './pages/AuthPage';
 import FriendsPage from './pages/FriendsPage';
 
 function App() {
-    const { state } = useStore();
+    const { state, dispatch } = useStore();
     const { currentUser } = state;
 
     return (

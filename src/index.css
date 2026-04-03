@@ -108,10 +108,11 @@ h1, h2, h3, h4, .font-orbitron {
 
 .main-content {
   flex: 1;
-  margin-left: 240px; /* Sidebar width */
+  margin-left: 240px; /* Force desktop sidebar offset */
   padding: 40px;
   min-height: 100vh;
-  transition: margin-left 0.3s ease;
+  position: relative;
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {
