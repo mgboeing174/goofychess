@@ -24,8 +24,10 @@ const AuthPage = () => {
                 await signInWithRedirect(auth, provider);
             } else if (error.code === 'auth/unauthorized-domain') {
                 addToast('Domain NOT authorized in Firebase! See instructions below.', 'error');
+                alert('Firebase Auth Error: The domain goofychess.vercel.app must be added to your Authorized Domains in Firebase Console.');
             } else {
                 addToast(`Login Error: ${error.message}`, 'error');
+                alert('Sign-In Failed: ' + error.message);
             }
         } finally {
             setLoading(false);

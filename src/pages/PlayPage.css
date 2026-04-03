@@ -75,50 +75,71 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* For scanning line */
 }
 
-.diff-btn:hover, .time-btn:hover {
-  transform: translateY(-5px) scale(1.02);
-  border-color: var(--accent);
-  box-shadow: 0 5px 25px var(--accent-glow);
-}
-
-/* Shimmer Light Sweep Animation */
+/* Cinematic Video-like Scanning Line */
 .diff-btn::before, .time-btn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -150%;
-  width: 50%;
-  height: 100%;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 2px;
   background: linear-gradient(
-    90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.2), 
+    to right,
+    transparent,
+    var(--accent),
     transparent
   );
-  transform: skewX(-20deg);
-  transition: 0.8s;
-  pointer-events: none;
+  box-shadow: 0 0 15px var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
 }
 
 .diff-btn:hover::before, .time-btn:hover::before {
-  left: 150%;
+  opacity: 1;
+  animation: scanningLine 2s infinite linear;
 }
 
-.diff-btn.active, .time-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  box-shadow: 0 0 25px var(--accent-glow);
-  transform: translateY(-3px);
-  animation: neonPulse 2s infinite ease-in-out;
+/* Holographic Shimmer Effect */
+.diff-btn::after, .time-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    rgba(0, 243, 255, 0.1) 45%,
+    rgba(0, 243, 255, 0.2) 50%,
+    rgba(0, 243, 255, 0.1) 55%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  background-position: -200% 0;
+  transition: 0.5s;
+  pointer-events: none;
 }
 
-@keyframes neonPulse {
-  0% { box-shadow: 0 0 15px var(--accent-glow); }
-  50% { box-shadow: 0 0 35px var(--accent-glow); }
-  100% { box-shadow: 0 0 15px var(--accent-glow); }
+.diff-btn:hover::after, .time-btn:hover::after {
+  background-position: 200% 0;
+}
+
+@keyframes scanningLine {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.pulse-logo {
+  animation: pulseLogo 3s infinite ease-in-out;
+}
+
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--neon-purple)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--neon-purple)); }
 }
 
 .setup-actions {

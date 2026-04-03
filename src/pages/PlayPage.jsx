@@ -17,13 +17,9 @@ import {
     Trophy, 
     Clock, 
     Cpu, 
-    User, 
-    ChevronRight, 
-    RotateCcw, 
-    Flag, 
-    Send,
     LogOut,
-    CheckCircle2
+    CheckCircle2,
+    Globe
 } from 'lucide-react';
 import './PlayPage.css';
 
@@ -60,6 +56,15 @@ const PlayPage = () => {
     const [playerTime, setPlayerTime] = useState(600);
     const [opponentTime, setOpponentTime] = useState(600);
     const timerRef = useRef(null);
+
+    // Responsive board width
+    const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 60, 560));
+
+    useEffect(() => {
+        const handleResize = () => setBoardWidth(Math.min(window.innerWidth - 60, 560));
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const playSound = (type) => {
         const audio = new Audio(`/sounds/${type}.mp3`);
@@ -131,7 +136,7 @@ const PlayPage = () => {
                                 <p>Practice your skills against our AI engine.</p>
                             </button>
                             <button onClick={() => {setGameMode('online'); setScreen('setup');}} className="lobby-card glass-panel">
-                                <User size={40} className="text-neon-purple" />
+                                <Globe size={40} className="text-neon-purple pulse-logo" />
                                 <h3>Play Online</h3>
                                 <p>Compete with players around the world.</p>
                             </button>
@@ -190,7 +195,7 @@ const PlayPage = () => {
                         <ChessBoard 
                             position={board} 
                             onMove={handleMove} 
-                            squareSize={boardScale} 
+                            squareSize={boardWidth / 8} 
                             orientation={playerColor === 'w' ? 'white' : 'black'}
                         />
                         
