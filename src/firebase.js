@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref, set, onValue, push, remove, update, onDisconnect, get } from "firebase/database";
 
 const firebaseConfig = {
@@ -25,7 +25,7 @@ if (isConfigured) {
 }
 
 export {
-    auth, provider, signInWithPopup, signOut, onAuthStateChanged,
+    auth, provider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged,
     db, ref, set, onValue, push, remove, update, onDisconnect, get,
     isConfigured
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import './index.css';
+import { X } from 'lucide-react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store';
 import Sidebar from './components/Sidebar';
@@ -27,6 +28,16 @@ function App() {
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
+                <div className="toasts-container">
+                    {state.notifications.map((toast) => (
+                        <div key={toast.id} className={`toast-item glass-panel ${toast.type}`}>
+                            <span className="toast-message">{toast.message}</span>
+                            <button className="toast-close" onClick={() => dispatch({ type: 'REMOVE_TOAST', payload: toast.id })}>
+                                <X size={14} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
         </BrowserRouter>
     );

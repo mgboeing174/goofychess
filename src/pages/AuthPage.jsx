@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, TEST_USER } from '../store';
-import { signInWithPopup, provider, auth, isConfigured } from '../firebase';
+import { signInWithPopup, signInWithRedirect, provider, auth, isConfigured } from '../firebase';
 import { LogIn, User, ShieldCheck, Zap } from 'lucide-react';
 import './AuthPage.css';
 
@@ -20,11 +20,12 @@ const AuthPage = () => {
         } catch (error) {
             console.error('Login Failed', error);
             if (error.code === 'auth/popup-blocked') {
-                addToast('Popup blocked! Please allow popups for this site.', 'error');
+                addToast('Popup blocked! Redirecting you to login...', 'info');
+                await signInWithRedirect(auth, provider);
             } else if (error.code === 'auth/unauthorized-domain') {
-                addToast('Domain not authorized in Firebase! Check Firebase Console.', 'error');
+                addToast('Domain NOT authorized in Firebase! See instructions below.', 'error');
             } else {
-                addToast('Login failed. Check your connection or Vercel Config.', 'error');
+                addToast(`Login Error: ${error.message}`, 'error');
             }
         } finally {
             setLoading(false);

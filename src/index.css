@@ -202,3 +202,39 @@ h1, h2, h3, h4, .font-orbitron {
   background: var(--accent-dim);
   border-color: var(--accent);
 }
+
+/* Toast Notifications */
+.toasts-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 9999;
+}
+
+.toast-item {
+  min-width: 300px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid var(--accent);
+}
+
+.toast-item.error { border-left-color: var(--danger); box-shadow: 0 0 20px rgba(255, 0, 60, 0.2); }
+.toast-item.success { border-left-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+.toast-item.info { border-left-color: var(--neon-purple); }
+
+.toast-message { font-size: 0.9rem; font-weight: 500; }
+.toast-close { background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; }
+.toast-close:hover { color: white; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
