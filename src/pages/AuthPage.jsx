@@ -15,7 +15,13 @@ const AuthPage = () => {
             addToast('Welcome back!', 'success');
         } catch (error) {
             console.error('Login Failed', error);
-            addToast('Google login failed. Try Guest mode!', 'error');
+            if (error.code === 'auth/popup-blocked') {
+                addToast('Popup blocked! Please allow popups for this site.', 'error');
+            } else if (error.code === 'auth/unauthorized-domain') {
+                addToast('Domain not authorized in Firebase! Check Firebase Console.', 'error');
+            } else {
+                addToast('Login failed. Check your connection or Vercel Config.', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -51,7 +57,7 @@ const AuthPage = () => {
                     </div>
 
                     <button className="btn-neon-outline w-full" onClick={handleGuestLogin}>
-                        <User size={20} /> Continue as Guest (Testing)
+                        <User size={20} /> Continue as Guest
                     </button>
                 </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Chess } from 'chess.js';
 import ChessBoard from '../components/ChessBoard';
 import { Trophy, Target, ChevronRight, CheckCircle2, Lock, Zap } from 'lucide-react';
 import './PuzzlesPage.css';
@@ -13,7 +14,25 @@ const PUZZLE_NODES = [
 
 const PuzzlesPage = () => {
     const [selectedLevel, setSelectedLevel] = useState(PUZZLE_NODES[0]);
+    const [chess] = useState(new Chess());
+    const [board, setBoard] = useState(chess.fen());
     const [boardScale, setBoardScale] = useState(64);
+
+    const handleMove = (sourceSquare, targetSquare) => {
+        try {
+            const move = {
+                from: sourceSquare,
+                to: targetSquare,
+                promotion: 'q',
+            };
+            const result = chess.move(move);
+            if (!result) return false;
+            setBoard(chess.fen());
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
 
     useEffect(() => {
         const handleResize = () => {
@@ -60,7 +79,8 @@ const PuzzlesPage = () => {
 
                 <div className="pz-main game-screen">
                     <ChessBoard 
-                        position="start" 
+                        position={board} 
+                        onMove={handleMove}
                         squareSize={boardScale} 
                     />
                     

@@ -75,8 +75,14 @@ const PlayPage = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const handleMove = (move) => {
+    const handleMove = (sourceSquare, targetSquare) => {
         if (gameState !== 'playing') return false;
+
+        const move = {
+            from: sourceSquare,
+            to: targetSquare,
+            promotion: 'q', // Always promote to queen for simplicity
+        };
         
         try {
             const result = chess.move(move);
