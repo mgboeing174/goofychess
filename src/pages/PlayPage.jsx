@@ -17,6 +17,11 @@ import {
     Trophy, 
     Clock, 
     Cpu, 
+    User,
+    ChevronRight, 
+    RotateCcw, 
+    Flag, 
+    Send,
     LogOut,
     CheckCircle2,
     Globe
