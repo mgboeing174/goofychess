@@ -73,13 +73,42 @@
   color: var(--text-primary);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.diff-btn:hover, .time-btn:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--accent);
+  box-shadow: 0 5px 15px var(--accent-glow);
+}
+
+.diff-btn::after, .time-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 243, 255, 0.05),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.diff-btn:hover::after, .time-btn:hover::after {
+  left: 100%;
 }
 
 .diff-btn.active, .time-btn.active {
   border-color: var(--accent);
   background: var(--accent-dim);
-  box-shadow: 0 0 15px var(--accent-glow);
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: translateY(-2px);
 }
 
 .setup-actions {

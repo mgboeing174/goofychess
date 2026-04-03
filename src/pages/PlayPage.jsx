@@ -28,9 +28,10 @@ import {
 import './PlayPage.css';
 
 const TIME_CONTROLS = [
-    { label: 'Blitz (3m)', value: 180, type: 'blitz', increment: 2 },
-    { label: 'Rapid (10m)', value: 600, type: 'rapid', increment: 0 },
-    { label: 'Classic (30m)', value: 1800, type: 'classic', increment: 0 },
+    { label: 'Bullet (1m)', value: 60, type: 'bullet', increment: 0 },
+    { label: 'Blitz (5m)', value: 300, type: 'blitz', increment: 2 },
+    { label: 'Classic (10m)', value: 600, type: 'classic', increment: 0 },
+    { label: 'Rapid (30m)', value: 1800, type: 'rapid', increment: 0 },
 ];
 
 const DIFFICULTY_CONFIGS = {
