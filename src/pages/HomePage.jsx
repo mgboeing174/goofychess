@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { Play, Trophy, Users, TrendingUp, ChevronRight, Zap, Target, Swords } from 'lucide-react';
+import './HomePage.css';
 
 const HomePage = () => {
     const { state } = useStore();

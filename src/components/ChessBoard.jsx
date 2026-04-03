@@ -1,5 +1,6 @@
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
+import './ChessBoard.css';
 
 const ChessBoard = ({ position, onMove, squareSize, orientation = 'white', lastMove }) => {
     

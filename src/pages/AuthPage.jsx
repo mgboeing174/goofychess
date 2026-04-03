@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore, TEST_USER } from '../store';
 import { signInWithPopup, provider, auth } from '../firebase';
 import { LogIn, User, ShieldCheck, Zap } from 'lucide-react';
+import './AuthPage.css';
 
 const AuthPage = () => {
     const { dispatch, addToast } = useStore();

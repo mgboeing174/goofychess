@@ -25,6 +25,7 @@ import {
     LogOut,
     CheckCircle2
 } from 'lucide-react';
+import './PlayPage.css';
 
 const TIME_CONTROLS = [
     { label: 'Blitz (3m)', value: 180, type: 'blitz', increment: 2 },

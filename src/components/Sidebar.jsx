@@ -12,6 +12,7 @@ import {
   ChevronRight,
   User
 } from 'lucide-react';
+import './Sidebar.css';
 
 const Sidebar = () => {
     const { state, dispatch } = useStore();

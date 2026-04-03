@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChessBoard from '../components/ChessBoard';
 import { Trophy, Target, ChevronRight, CheckCircle2, Lock, Zap } from 'lucide-react';
+import './PuzzlesPage.css';
 
 const PUZZLE_NODES = [
     { id: 1, x: 50, y: 80, label: '1', rating: 600, status: 'unlocked' },

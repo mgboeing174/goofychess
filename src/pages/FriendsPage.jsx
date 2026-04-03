@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { listenToOnlineUsers, updatePresence } from '../onlinePresence';
 import { Users, Search, MessageSquare, Sword, Zap, Heart } from 'lucide-react';
+import './FriendsPage.css';
 
 const FriendsPage = () => {
     const { state, addToast } = useStore();
