@@ -6,8 +6,16 @@
   border: 1px solid var(--border-accent);
   width: fit-content;
   margin: 0 auto;
+  position: relative; /* Critical for stable dragging */
+  z-index: 10;
+  overflow: visible !important; /* Allow the dragged piece to be seen if it slightly offsets */
 }
 
 .chessboard-container:hover {
   box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
+}
+
+/* Ensure the react-chessboard drag layer stays in bounds */
+[data-testid="drag-layer"] {
+  z-index: 9999;
 }

@@ -55,7 +55,7 @@ const PlayPage = () => {
     const gameRef = useRef(new Chess());
     const [board, setBoard] = useState(gameRef.current.fen());
     const [gameState, setGameState] = useState('idle'); // 'idle', 'searching', 'playing', 'ended'
-    const [playerColor, setPlayerColor] = useState('w');
+    const [playerColor, setPlayerColor] = useState('white');
     
     // Timer
     const [playerTime, setPlayerTime] = useState(600);
@@ -67,7 +67,7 @@ const PlayPage = () => {
     const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 60, 560));
 
     useEffect(() => {
-        const handleResize = () => setBoardWidth(Math.min(window.innerWidth - 60, 560));
+        const handleResize = () => setBoardWidth(Math.min(window.innerWidth - 80, 560));
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);

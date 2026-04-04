@@ -79,9 +79,11 @@ const PuzzlesPage = () => {
 
                 <div className="pz-main game-screen">
                     <ChessBoard 
+                        game={gameRef.current}
                         position={board} 
                         onMove={handleMove}
-                        squareSize={boardScale} 
+                        squareSize={64} 
+                        orientation="white"
                     />
                     
                     <div className="pz-info glass-panel">
