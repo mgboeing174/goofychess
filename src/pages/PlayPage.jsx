@@ -634,13 +634,13 @@ const PlayPage = () => {
                     <div className="quality-grid">
                         {gameResult.brilliant > 0 && (
                             <div className="quality-item brilliant">
-                                <span className="quality-icon">💎</span>
+                                <span className="quality-icon">!!</span>
                                 <span className="quality-count">{gameResult.brilliant}</span>
                                 <span className="quality-label">Brilliant</span>
                             </div>
                         )}
                         <div className="quality-item excellent">
-                            <span className="quality-icon">⭐</span>
+                            <span className="quality-icon">★</span>
                             <span className="quality-count">{gameResult.excellent}</span>
                             <span className="quality-label">Excellent</span>
                         </div>
@@ -650,7 +650,7 @@ const PlayPage = () => {
                             <span className="quality-label">Great</span>
                         </div>
                         <div className="quality-item good">
-                            <span className="quality-icon">●</span>
+                            <span className="quality-icon">👍</span>
                             <span className="quality-count">{gameResult.good}</span>
                             <span className="quality-label">Good</span>
                         </div>
@@ -660,7 +660,7 @@ const PlayPage = () => {
                             <span className="quality-label">Miss</span>
                         </div>
                         <div className="quality-item blunder">
-                            <span className="quality-icon">✕</span>
+                            <span className="quality-icon">??</span>
                             <span className="quality-count">{gameResult.blunder}</span>
                             <span className="quality-label">Blunder</span>
                         </div>

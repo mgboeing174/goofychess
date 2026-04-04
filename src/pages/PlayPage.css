@@ -574,28 +574,31 @@
 .quality-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 20px;
   font-size: 0.8rem;
   border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .quality-icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: white;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .quality-count {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: 'Orbitron', sans-serif;
 }
 
@@ -603,66 +606,74 @@
   font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
-/* Brilliant — Cyan Diamond */
+/* Brilliant — Cyan !! */
 .quality-item.brilliant {
-  border-color: rgba(0, 243, 255, 0.3);
-  background: rgba(0, 243, 255, 0.06);
+  border-color: rgba(0, 243, 255, 0.35);
+  background: rgba(0, 243, 255, 0.08);
 }
-.quality-item.brilliant .quality-icon { font-size: 0.9rem; }
+.quality-item.brilliant .quality-icon {
+  background: #00b4c8;
+  font-size: 0.65rem;
+  letter-spacing: -1px;
+}
 .quality-item.brilliant .quality-count { color: #00f3ff; }
 
-/* Excellent — Gold Star */
+/* Excellent — Gold ★ */
 .quality-item.excellent {
-  border-color: rgba(245, 200, 66, 0.3);
-  background: rgba(245, 200, 66, 0.06);
+  border-color: rgba(245, 200, 66, 0.35);
+  background: rgba(245, 200, 66, 0.08);
 }
-.quality-item.excellent .quality-icon { font-size: 0.9rem; }
+.quality-item.excellent .quality-icon {
+  background: #b89b1e;
+  font-size: 0.85rem;
+}
 .quality-item.excellent .quality-count { color: #f5c842; }
 
-/* Great — Blue */
+/* Great — Blue ! */
 .quality-item.great {
-  border-color: rgba(66, 133, 244, 0.3);
-  background: rgba(66, 133, 244, 0.06);
+  border-color: rgba(66, 133, 244, 0.35);
+  background: rgba(66, 133, 244, 0.08);
 }
-.quality-item.great .quality-icon { 
-  background: rgba(66, 133, 244, 0.25); 
-  color: #4285f4; 
+.quality-item.great .quality-icon {
+  background: #3367d6;
+  font-size: 0.85rem;
 }
 .quality-item.great .quality-count { color: #4285f4; }
 
-/* Good — Green */
+/* Good — Green 👍 */
 .quality-item.good {
-  border-color: rgba(0, 200, 83, 0.3);
-  background: rgba(0, 200, 83, 0.06);
+  border-color: rgba(0, 200, 83, 0.35);
+  background: rgba(0, 200, 83, 0.08);
 }
-.quality-item.good .quality-icon { 
-  background: rgba(0, 200, 83, 0.25); 
-  color: #00c853; 
+.quality-item.good .quality-icon {
+  background: #1b8a42;
+  font-size: 0.8rem;
 }
 .quality-item.good .quality-count { color: #00c853; }
 
-/* Miss — Orange */
+/* Miss — Orange ? */
 .quality-item.miss {
-  border-color: rgba(255, 152, 0, 0.3);
-  background: rgba(255, 152, 0, 0.06);
+  border-color: rgba(255, 184, 0, 0.35);
+  background: rgba(255, 184, 0, 0.08);
 }
-.quality-item.miss .quality-icon { 
-  background: rgba(255, 152, 0, 0.25); 
-  color: #ff9800; 
+.quality-item.miss .quality-icon {
+  background: #c98c00;
+  font-size: 0.85rem;
 }
-.quality-item.miss .quality-count { color: #ff9800; }
+.quality-item.miss .quality-count { color: #ffb800; }
 
-/* Blunder — Red */
+/* Blunder — Red ?? */
 .quality-item.blunder {
-  border-color: rgba(255, 0, 60, 0.3);
-  background: rgba(255, 0, 60, 0.06);
+  border-color: rgba(255, 0, 60, 0.35);
+  background: rgba(255, 0, 60, 0.08);
 }
-.quality-item.blunder .quality-icon { 
-  background: rgba(255, 0, 60, 0.25); 
-  color: #ff003c; 
+.quality-item.blunder .quality-icon {
+  background: #cc0030;
+  font-size: 0.6rem;
+  letter-spacing: -1px;
 }
 .quality-item.blunder .quality-count { color: #ff003c; }
 
@@ -672,5 +683,5 @@
   .result-icon { width: 64px; height: 64px; }
   .result-actions { flex-direction: column; }
   .quality-grid { gap: 6px; }
-  .quality-item { padding: 5px 8px; font-size: 0.75rem; }
+  .quality-item { padding: 5px 10px 5px 5px; }
 }
