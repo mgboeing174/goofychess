@@ -154,7 +154,7 @@ const PlayPage = () => {
     const renderScreen = () => {
         if (searching) {
             return (
-                <div className="searching-screen">
+                <div className="searching-screen glass-panel">
                     <div className="loader font-orbitron">
                         <Globe size={60} className="pulse-logo" />
                         <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
@@ -173,7 +173,7 @@ const PlayPage = () => {
         switch (screen) {
             case 'lobby':
                 return (
-                    <div className="play-lobby">
+                    <div className="play-lobby glass-panel">
                         <h2 className="lobby-title font-orbitron">Challenge <span className="text-neon">Arena</span></h2>
                         <div className="lobby-cards">
                             <button onClick={() => {setGameMode('bot'); setScreen('setup');}} className="lobby-card glass-panel">
@@ -191,7 +191,7 @@ const PlayPage = () => {
                 );
             case 'setup':
                 return (
-                    <div className="game-setup">
+                    <div className="game-setup glass-panel">
                         <h2 className="font-orbitron lobby-title">Setup: <span className="text-neon">{gameMode === 'bot' ? 'AI Match' : 'Arena Match'}</span></h2>
                         <div className="setup-options">
                             {gameMode === 'bot' ? (
@@ -270,7 +270,7 @@ const PlayPage = () => {
 
     return (
         <div className="play-page">
-            <div className="glass-panel play-container">
+            <div className="play-container">
                 {renderScreen()}
             </div>
         </div>
