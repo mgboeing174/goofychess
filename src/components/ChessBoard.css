@@ -22,6 +22,12 @@
   pointer-events: none;
 }
 
+[data-testid="drag-layer"] [data-piece],
+.chessboard-container [data-piece] {
+  transition: transform 0s !important; /* Kill the animation during manual drag */
+  cursor: grabbing !important;
+}
+
 [data-testid="drag-layer"] > div {
   transform: none !important; /* Force raw coordinates to fix flying pieces */
 }
