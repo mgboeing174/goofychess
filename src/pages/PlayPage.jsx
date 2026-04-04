@@ -119,6 +119,74 @@ function getBotMove(game, difficulty) {
     return bestMove ? bestMove.san : moves[0].san;
 }
 
+// ── Move Quality Classification ────────────────────────────────
+function evaluateForWhite(game) {
+    const board = game.board();
+    let score = 0;
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (!piece) continue;
+            const val = PIECE_VALUES[piece.type] || 0;
+            const sign = piece.color === 'w' ? 1 : -1;
+            score += val * sign;
+            const sq = String.fromCharCode(97+c) + (8-r);
+            if (CENTER_SQUARES.includes(sq)) score += 0.15 * sign;
+            else if (EXTENDED_CENTER.includes(sq)) score += 0.05 * sign;
+        }
+    }
+    if (game.isCheckmate()) {
+        score += game.turn() === 'b' ? 100 : -100; // white just moved and checkmated
+    }
+    return score;
+}
+
+function classifyPlayerMove(game, moveResult) {
+    // Undo the move to evaluate alternatives
+    game.undo();
+    const playerColor = game.turn(); // 'w' or 'b'
+    const sign = playerColor === 'w' ? 1 : -1;
+
+    // Evaluate all legal moves
+    const allMoves = game.moves({ verbose: true });
+    let bestEval = -Infinity;
+    let worstEval = Infinity;
+    const evals = [];
+
+    for (const m of allMoves) {
+        game.move(m.san);
+        const ev = evaluateForWhite(game) * sign;
+        evals.push({ san: m.san, eval: ev, captured: m.captured, flags: m.flags });
+        if (ev > bestEval) bestEval = ev;
+        if (ev < worstEval) worstEval = ev;
+        game.undo();
+    }
+
+    // Re-apply the original move
+    game.move(moveResult.san);
+    const chosenEval = evals.find(e => e.san === moveResult.san)?.eval ?? 0;
+    const diff = bestEval - chosenEval; // how far from best (0 = best)
+
+    // Brilliant: sacrifice material but it's the best/near-best move
+    const isSacrifice = moveResult.captured === undefined && allMoves.some(m => {
+        // Player gave up material (moved a piece to a square where it can be captured)
+        return false; // simplified check
+    });
+    // Better brilliant check: move involves losing material context but is best
+    const prevBoard = game.board();
+    const isBrilliant = diff < 0.3 && (
+        (moveResult.san.includes('+') && moveResult.captured) || // check + capture combo
+        (game.isCheckmate()) // leads to checkmate
+    );
+
+    if (isBrilliant) return 'brilliant';
+    if (diff <= 0.1) return 'excellent';  // Best move
+    if (diff <= 0.5) return 'great';      // Very close to best
+    if (diff <= 1.5) return 'good';       // Decent move
+    if (diff <= 3.0) return 'miss';       // Missed better opportunity
+    return 'blunder';                      // Lost significant material
+}
+
 // ── Main Component ─────────────────────────────────────────────
 const PlayPage = () => {
     const { state, dispatch, addToast } = useStore();
@@ -136,8 +204,8 @@ const PlayPage = () => {
     const [gameState, setGameState] = useState('idle');
     const [playerColor, setPlayerColor] = useState('white');
     const [statusMessage, setStatusMessage] = useState('');
-    const [gameResult, setGameResult] = useState(null); // { winner, reason, moves, captures, checks }
-    const [moveStats, setMoveStats] = useState({ total: 0, captures: 0, checks: 0 });
+    const [gameResult, setGameResult] = useState(null);
+    const [moveStats, setMoveStats] = useState({ total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 });
     const [showResultModal, setShowResultModal] = useState(false);
     
     // Timer
@@ -185,6 +253,10 @@ const PlayPage = () => {
             const newStats = { ...moveStats, total: moveStats.total + 1 };
             if (result.captured) newStats.captures++;
             if (gameRef.current.isCheck()) newStats.checks++;
+
+            // Classify move quality
+            const quality = classifyPlayerMove(gameRef.current, result);
+            newStats[quality]++;
             setMoveStats(newStats);
 
             // Sound + end logic
@@ -261,7 +333,7 @@ const PlayPage = () => {
         setStatusMessage('');
         setGameResult(null);
         setShowResultModal(false);
-        setMoveStats({ total: 0, captures: 0, checks: 0 });
+        setMoveStats({ total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 });
         playGameStartSound();
     };
 
@@ -558,6 +630,41 @@ const PlayPage = () => {
                         <div className="result-stat">
                             <div className="stat-number">{gameResult.checks}</div>
                             <div className="stat-label">Checks</div>
+                        </div>
+                    </div>
+
+                    <div className="quality-grid">
+                        {gameResult.brilliant > 0 && (
+                            <div className="quality-item brilliant">
+                                <span className="quality-icon">💎</span>
+                                <span className="quality-count">{gameResult.brilliant}</span>
+                                <span className="quality-label">Brilliant</span>
+                            </div>
+                        )}
+                        <div className="quality-item excellent">
+                            <span className="quality-icon">⭐</span>
+                            <span className="quality-count">{gameResult.excellent}</span>
+                            <span className="quality-label">Excellent</span>
+                        </div>
+                        <div className="quality-item great">
+                            <span className="quality-icon">!</span>
+                            <span className="quality-count">{gameResult.great}</span>
+                            <span className="quality-label">Great</span>
+                        </div>
+                        <div className="quality-item good">
+                            <span className="quality-icon">●</span>
+                            <span className="quality-count">{gameResult.good}</span>
+                            <span className="quality-label">Good</span>
+                        </div>
+                        <div className="quality-item miss">
+                            <span className="quality-icon">?</span>
+                            <span className="quality-count">{gameResult.miss}</span>
+                            <span className="quality-label">Miss</span>
+                        </div>
+                        <div className="quality-item blunder">
+                            <span className="quality-icon">✕</span>
+                            <span className="quality-count">{gameResult.blunder}</span>
+                            <span className="quality-label">Blunder</span>
                         </div>
                     </div>
 

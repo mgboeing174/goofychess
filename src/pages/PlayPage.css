@@ -562,9 +562,115 @@
   flex: 1;
 }
 
+/* ── Move Quality Grid ── */
+.quality-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  justify-content: center;
+}
+
+.quality-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.quality-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.quality-count {
+  font-weight: 800;
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.quality-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Brilliant — Cyan Diamond */
+.quality-item.brilliant {
+  border-color: rgba(0, 243, 255, 0.3);
+  background: rgba(0, 243, 255, 0.06);
+}
+.quality-item.brilliant .quality-icon { font-size: 0.9rem; }
+.quality-item.brilliant .quality-count { color: #00f3ff; }
+
+/* Excellent — Gold Star */
+.quality-item.excellent {
+  border-color: rgba(245, 200, 66, 0.3);
+  background: rgba(245, 200, 66, 0.06);
+}
+.quality-item.excellent .quality-icon { font-size: 0.9rem; }
+.quality-item.excellent .quality-count { color: #f5c842; }
+
+/* Great — Blue */
+.quality-item.great {
+  border-color: rgba(66, 133, 244, 0.3);
+  background: rgba(66, 133, 244, 0.06);
+}
+.quality-item.great .quality-icon { 
+  background: rgba(66, 133, 244, 0.25); 
+  color: #4285f4; 
+}
+.quality-item.great .quality-count { color: #4285f4; }
+
+/* Good — Green */
+.quality-item.good {
+  border-color: rgba(0, 200, 83, 0.3);
+  background: rgba(0, 200, 83, 0.06);
+}
+.quality-item.good .quality-icon { 
+  background: rgba(0, 200, 83, 0.25); 
+  color: #00c853; 
+}
+.quality-item.good .quality-count { color: #00c853; }
+
+/* Miss — Orange */
+.quality-item.miss {
+  border-color: rgba(255, 152, 0, 0.3);
+  background: rgba(255, 152, 0, 0.06);
+}
+.quality-item.miss .quality-icon { 
+  background: rgba(255, 152, 0, 0.25); 
+  color: #ff9800; 
+}
+.quality-item.miss .quality-count { color: #ff9800; }
+
+/* Blunder — Red */
+.quality-item.blunder {
+  border-color: rgba(255, 0, 60, 0.3);
+  background: rgba(255, 0, 60, 0.06);
+}
+.quality-item.blunder .quality-icon { 
+  background: rgba(255, 0, 60, 0.25); 
+  color: #ff003c; 
+}
+.quality-item.blunder .quality-count { color: #ff003c; }
+
 @media (max-width: 480px) {
   .result-modal { padding: 24px 20px; }
   .result-title { font-size: 1.6rem; }
   .result-icon { width: 64px; height: 64px; }
   .result-actions { flex-direction: column; }
+  .quality-grid { gap: 6px; }
+  .quality-item { padding: 5px 8px; font-size: 0.75rem; }
 }
