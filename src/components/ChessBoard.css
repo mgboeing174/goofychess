@@ -1,21 +1,27 @@
 .chessboard-container {
   padding: 10px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
   border: 1px solid var(--border-accent);
   width: fit-content;
   margin: 0 auto;
-  position: relative; /* Critical for stable dragging */
-  z-index: 10;
-  overflow: visible !important; /* Allow the dragged piece to be seen if it slightly offsets */
+  position: relative;
+  z-index: 1;
+  isolation: isolate; /* Crutial to fix coordinate distortion with backdrop-filter */
+  transform: translateZ(0); /* Create new rendering context without blur offset */
 }
 
 .chessboard-container:hover {
   box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
 }
 
-/* Ensure the react-chessboard drag layer stays in bounds */
+/* Stability fix for drag layer */
 [data-testid="drag-layer"] {
   z-index: 9999;
+  pointer-events: none;
+}
+
+[data-testid="drag-layer"] > div {
+  transform: none !important; /* Force raw coordinates to fix flying pieces */
 }
