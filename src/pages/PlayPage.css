@@ -1,3 +1,4 @@
+/* ── Play Page Layout ── */
 .play-container {
   padding: 40px;
   min-height: 80vh;
@@ -6,6 +7,7 @@
   justify-content: center;
 }
 
+/* ── Lobby ── */
 .lobby-title {
   font-size: 2.5rem;
   margin-bottom: 40px;
@@ -42,106 +44,201 @@
   font-size: 0.9rem;
 }
 
+/* ── Setup Screen ── */
 .game-setup {
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
 }
 
-.setup-section {
-  margin: 30px 0;
-}
-
-.setup-section label {
-  display: block;
-  font-size: 0.8rem;
-  text-transform: uppercase;
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
   color: var(--text-muted);
-  margin-bottom: 15px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  transition: color 0.2s;
+}
+.back-btn:hover {
+  color: var(--accent);
 }
 
-.difficulty-grid, .time-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 15px;
+.setup-title {
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
 }
 
-.diff-btn, .time-btn {
-  padding: 15px;
+/* ── Difficulty Cards ── */
+.difficulty-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diff-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-weight: 600;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s ease;
+  text-align: left;
+  color: var(--text-primary);
   position: relative;
-  overflow: hidden; /* For scanning line */
 }
 
-/* Cinematic Video-like Scanning Line */
-.diff-btn::before, .time-btn::before {
-  content: '';
+.diff-card:hover {
+  border-color: var(--card-accent, var(--accent));
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.diff-card.active {
+  border-color: var(--card-accent, var(--accent));
+  background: rgba(0, 243, 255, 0.05);
+  box-shadow: 0 0 25px color-mix(in srgb, var(--card-accent, var(--accent)) 20%, transparent);
+}
+
+.diff-card-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--card-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+.diff-card-info {
+  flex: 1;
+}
+
+.diff-card-info h4 {
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.diff-rating {
+  font-size: 0.75rem;
+  color: var(--card-accent, var(--text-muted));
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.diff-card-info p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.diff-check {
+  color: var(--card-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+/* ── Time Control Cards ── */
+.time-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.time-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-primary);
+  text-align: center;
+  position: relative;
+}
+
+.time-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+.time-card.active {
+  border-color: var(--accent);
+  background: rgba(0, 243, 255, 0.05);
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.15);
+}
+
+.time-card h4 {
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.time-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.time-card p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.time-check {
   position: absolute;
-  top: -100%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--accent),
-    transparent
-  );
-  box-shadow: 0 0 15px var(--accent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 2;
+  top: 10px;
+  right: 10px;
+  color: var(--accent);
 }
 
-.diff-btn:hover::before, .time-btn:hover::before {
-  opacity: 1;
-  animation: scanningLine 2s infinite linear;
+/* ── Confirm Summary ── */
+.setup-confirm {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* Holographic Shimmer Effect */
-.diff-btn::after, .time-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    115deg,
-    transparent 40%,
-    rgba(0, 243, 255, 0.1) 45%,
-    rgba(0, 243, 255, 0.2) 50%,
-    rgba(0, 243, 255, 0.1) 55%,
-    transparent 60%
-  );
-  background-size: 200% 100%;
-  background-position: -200% 0;
-  transition: 0.5s;
-  pointer-events: none;
+.confirm-summary {
+  flex: 1;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
 }
 
-.diff-btn:hover::after, .time-btn:hover::after {
-  background-position: 200% 0;
+.confirm-summary span {
+  color: var(--text-muted);
 }
 
-@keyframes scanningLine {
-  0% { top: 0%; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+.btn-start {
+  padding: 14px 28px;
+  font-size: 1rem;
+  white-space: nowrap;
 }
 
-.pulse-logo {
-  animation: pulseLogo 3s infinite ease-in-out;
-}
-
-@keyframes pulseLogo {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--neon-purple)); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--neon-purple)); }
-}
-
+/* ── Searching Screen ── */
 .searching-screen {
   display: flex;
   flex-direction: column;
@@ -159,25 +256,16 @@
   align-items: center;
 }
 
-.difficulty-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 15px;
+.pulse-logo {
+  animation: pulseLogo 3s infinite ease-in-out;
 }
 
-@media (min-width: 480px) {
-  .difficulty-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--neon-purple)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--neon-purple)); }
 }
 
-.setup-actions {
-  display: flex;
-  gap: 15px;
-  margin-top: 40px;
-}
-
+/* ── Game Screen ── */
 .game-screen {
   display: flex;
   gap: 30px;
@@ -191,21 +279,76 @@
 
 .hud-header {
   font-size: 0.9rem;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
   color: var(--accent);
 }
 
+.bot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  background: rgba(0,0,0,0.3);
+}
+
+.status-banner {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 12px 0;
+  background: rgba(0, 243, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.status-banner.check {
+  background: rgba(255, 184, 0, 0.12);
+  border-color: var(--warning);
+  color: var(--warning);
+  animation: pulseCheck 0.6s ease;
+}
+
+.status-banner.checkmate {
+  background: rgba(0, 255, 136, 0.12);
+  border-color: #00ff88;
+  color: #00ff88;
+  animation: pulseCheck 0.6s ease;
+}
+
+@keyframes pulseCheck {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.game-actions {
+  margin-top: 20px;
+}
+
+/* ── Responsive ── */
 @media (max-width: 900px) {
   .game-screen {
     flex-direction: column;
     align-items: center;
   }
+  .game-info { width: 100%; max-width: 500px; }
+  .time-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 600px) {
-  .lobby-cards {
-    flex-direction: column;
-  }
+  .lobby-cards { flex-direction: column; }
+  .play-container { padding: 20px; }
+  .lobby-title { font-size: 1.8rem; }
+  .setup-confirm { flex-direction: column; }
+  .time-cards { grid-template-columns: 1fr 1fr; }
 }

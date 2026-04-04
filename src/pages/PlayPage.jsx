@@ -24,38 +24,118 @@ import {
     Send,
     LogOut,
     CheckCircle2,
-    Globe
+    Globe,
+    Zap,
+    Shield,
+    Crown,
+    Swords,
+    ArrowLeft
 } from 'lucide-react';
+import { playMoveSound, playCaptureSound, playCheckSound, playCheckmateSound, playGameStartSound, playIllegalMoveSound } from '../sounds';
 import './PlayPage.css';
 
 const TIME_CONTROLS = [
-    { label: 'Bullet (1m)', value: 60, type: 'bullet', increment: 0 },
-    { label: 'Blitz (5m)', value: 300, type: 'blitz', increment: 2 },
-    { label: 'Classic (10m)', value: 600, type: 'classic', increment: 0 },
-    { label: 'Rapid (30m)', value: 1800, type: 'rapid', increment: 0 },
+    { label: 'Bullet', time: '1 min', value: 60, type: 'bullet', increment: 0, icon: Zap, desc: 'Lightning fast' },
+    { label: 'Blitz', time: '5 min', value: 300, type: 'blitz', increment: 2, icon: Swords, desc: 'Quick thinking' },
+    { label: 'Classic', time: '10 min', value: 600, type: 'classic', increment: 0, icon: Clock, desc: 'Deep strategy' },
+    { label: 'Rapid', time: '30 min', value: 1800, type: 'rapid', increment: 0, icon: Shield, desc: 'Full analysis' },
 ];
 
 const DIFFICULTY_CONFIGS = {
-    easy: { label: 'Novice (800)', rating: 800, color: '#00f3ff' },
-    medium: { label: 'Apprentice (1200)', rating: 1200, color: '#f5c842' },
-    hard: { label: 'Grandmaster (1800)', rating: 1800, color: '#ff003c' }
+    easy:   { label: 'Novice',      rating: 800,  color: '#00f3ff', icon: Shield, desc: 'Random moves, great for learning basics', depth: 0 },
+    medium: { label: 'Apprentice',  rating: 1200, color: '#f5c842', icon: Swords, desc: 'Captures pieces, avoids blunders', depth: 1 },
+    hard:   { label: 'Grandmaster', rating: 1800, color: '#ff003c', icon: Crown,  desc: 'Strategic play, punishes mistakes', depth: 2 }
 };
 
+// ── Bot AI Engine ──────────────────────────────────────────────
+const PIECE_VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+// Center control bonus for pieces
+const CENTER_SQUARES = ['d4','d5','e4','e5'];
+const EXTENDED_CENTER = ['c3','c4','c5','c6','d3','d6','e3','e6','f3','f4','f5','f6'];
+
+function evaluateBoard(game) {
+    const board = game.board();
+    let score = 0;
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (!piece) continue;
+            const val = PIECE_VALUES[piece.type] || 0;
+            const sign = piece.color === 'b' ? 1 : -1; // bot is black
+            score += val * sign;
+            // Center control bonus
+            const sq = String.fromCharCode(97+c) + (8-r);
+            if (CENTER_SQUARES.includes(sq)) score += 0.3 * sign;
+            else if (EXTENDED_CENTER.includes(sq)) score += 0.1 * sign;
+        }
+    }
+    return score;
+}
+
+function getBotMove(game, difficulty) {
+    const moves = game.moves({ verbose: true });
+    if (moves.length === 0) return null;
+    const config = DIFFICULTY_CONFIGS[difficulty];
+
+    if (config.depth === 0) {
+        // Novice: mostly random, but will capture hanging pieces 30% of the time
+        const captures = moves.filter(m => m.captured);
+        if (captures.length > 0 && Math.random() < 0.3) {
+            return captures[Math.floor(Math.random() * captures.length)].san;
+        }
+        return moves[Math.floor(Math.random() * moves.length)].san;
+    }
+
+    if (config.depth === 1) {
+        // Apprentice: prioritize captures by value, check moves, avoid hanging own pieces
+        let best = null;
+        let bestScore = -Infinity;
+        for (const move of moves) {
+            let score = Math.random() * 0.5; // small randomness
+            if (move.captured) score += PIECE_VALUES[move.captured] * 2;
+            if (game.isCheck()) score += 1;
+            // Prefer developing pieces early
+            if (['n','b'].includes(move.piece) && move.from[1] === '8') score += 0.5;
+            if (score > bestScore) { bestScore = score; best = move; }
+        }
+        return best ? best.san : moves[0].san;
+    }
+
+    // Grandmaster: 1-ply minimax with evaluation
+    let bestMove = null;
+    let bestScore = -Infinity;
+    for (const move of moves) {
+        game.move(move.san);
+        let score = evaluateBoard(game);
+        // Check bonus
+        if (game.isCheck()) score += 2;
+        if (game.isCheckmate()) score += 100;
+        // Small randomness to avoid predictability
+        score += Math.random() * 0.2;
+        game.undo();
+        if (score > bestScore) { bestScore = score; bestMove = move; }
+    }
+    return bestMove ? bestMove.san : moves[0].san;
+}
+
+// ── Main Component ─────────────────────────────────────────────
 const PlayPage = () => {
     const { state, dispatch, addToast } = useStore();
     const { currentUser } = state;
 
-    // Game state
-    const [screen, setScreen] = useState('lobby'); // 'lobby', 'setup', 'game'
-    const [gameMode, setGameMode] = useState(null); // 'bot', 'online'
+    // Screen state
+    const [screen, setScreen] = useState('lobby');
+    const [gameMode, setGameMode] = useState(null);
     const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
     const [selectedTime, setSelectedTime] = useState(TIME_CONTROLS[1]);
     
     // Chess logic
     const gameRef = useRef(new Chess());
     const [board, setBoard] = useState(gameRef.current.fen());
-    const [gameState, setGameState] = useState('idle'); // 'idle', 'searching', 'playing', 'ended'
+    const [gameState, setGameState] = useState('idle');
     const [playerColor, setPlayerColor] = useState('white');
+    const [statusMessage, setStatusMessage] = useState('');
     
     // Timer
     const [playerTime, setPlayerTime] = useState(600);
@@ -64,7 +144,7 @@ const PlayPage = () => {
     const [searching, setSearching] = useState(false);
 
     // Responsive board width
-    const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 60, 560));
+    const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 80, 560));
 
     useEffect(() => {
         const handleResize = () => setBoardWidth(Math.min(window.innerWidth - 80, 560));
@@ -72,52 +152,82 @@ const PlayPage = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const playSound = (type) => {
-        const audio = new Audio(`/sounds/${type}.mp3`);
-        audio.play().catch(() => {}); // ignore if sound is missing
-    };
-
+    // ── Sound-aware move handler ───────────────────────────────
     const handleMove = (sourceSquare, targetSquare) => {
         if (gameState !== 'playing') return false;
-
-        const move = {
-            from: sourceSquare,
-            to: targetSquare,
-            promotion: 'q',
-        };
-        
         try {
-            const result = gameRef.current.move(move);
+            const result = gameRef.current.move({
+                from: sourceSquare,
+                to: targetSquare,
+                promotion: 'q',
+            });
             if (!result) {
-                addToast('Illegal move!', 'error');
+                playIllegalMoveSound();
                 return false;
             }
             
             setBoard(gameRef.current.fen());
-            playSound(result.captured ? 'capture' : 'move');
-            
-            if (gameRef.current.isGameOver()) {
+
+            // Sound logic
+            if (gameRef.current.isCheckmate()) {
+                playCheckmateSound();
                 setGameState('ended');
-                addToast('Game Over!', 'info');
+                setStatusMessage('Checkmate! You win! 🏆');
+                addToast('Checkmate! You win!', 'success');
+                return true;
+            }
+            if (gameRef.current.isStalemate() || gameRef.current.isDraw()) {
+                playMoveSound();
+                setGameState('ended');
+                setStatusMessage('Draw!');
+                addToast('Game drawn!', 'info');
+                return true;
+            }
+            if (gameRef.current.isCheck()) {
+                playCheckSound();
+                setStatusMessage('Check!');
+            } else if (result.captured) {
+                playCaptureSound();
+                setStatusMessage(`Captured ${result.captured.toUpperCase()}`);
+            } else {
+                playMoveSound();
+                setStatusMessage('');
             }
             
             if (gameMode === 'bot' && !gameRef.current.isGameOver()) {
-                setTimeout(makeBotMove, 500);
+                setTimeout(makeBotMove, 400 + Math.random() * 300);
             }
             
             return true;
         } catch (e) { return false; }
     };
 
+    // ── Smarter bot move ───────────────────────────────────────
     const makeBotMove = () => {
-        const moves = gameRef.current.moves();
-        const move = moves[Math.floor(Math.random() * moves.length)];
-        const result = gameRef.current.move(move);
+        const moveSan = getBotMove(gameRef.current, selectedDifficulty);
+        if (!moveSan) return;
+        const result = gameRef.current.move(moveSan);
         setBoard(gameRef.current.fen());
-        playSound(result.captured ? 'capture' : 'move');
-        if (gameRef.current.isGameOver()) {
+        
+        if (gameRef.current.isCheckmate()) {
+            playCheckmateSound();
             setGameState('ended');
-            addToast('Bot wins!', 'error');
+            setStatusMessage('Checkmate! Bot wins.');
+            addToast('Checkmate! Bot wins.', 'error');
+        } else if (gameRef.current.isStalemate() || gameRef.current.isDraw()) {
+            playMoveSound();
+            setGameState('ended');
+            setStatusMessage('Draw!');
+            addToast('Game drawn!', 'info');
+        } else if (gameRef.current.isCheck()) {
+            playCheckSound();
+            setStatusMessage('Check!');
+        } else if (result.captured) {
+            playCaptureSound();
+            setStatusMessage('');
+        } else {
+            playMoveSound();
+            setStatusMessage('');
         }
     };
 
@@ -127,6 +237,8 @@ const PlayPage = () => {
         setGameState('playing');
         setGameMode('bot');
         setScreen('game');
+        setStatusMessage('');
+        playGameStartSound();
     };
 
     const startOnlineMatch = async () => {
@@ -135,14 +247,12 @@ const PlayPage = () => {
         try {
             await joinQueue(currentUser.id, selectedTime.type);
             addToast('Searching for opponent...', 'info');
-            
-            // Start listening for game assignment
             listenForMyGame(currentUser.id, (gameData) => {
                 if (gameData) {
                     setSearching(false);
                     setGameState('playing');
                     setScreen('game');
-                    // Additional game setup logic here (board orientation, etc.)
+                    playGameStartSound();
                 }
             });
         } catch (error) {
@@ -151,6 +261,7 @@ const PlayPage = () => {
         }
     };
 
+    // ── Render ──────────────────────────────────────────────────
     const renderScreen = () => {
         if (searching) {
             return (
@@ -158,7 +269,7 @@ const PlayPage = () => {
                     <div className="loader font-orbitron">
                         <Globe size={60} className="pulse-logo" />
                         <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
-                        <p>{selectedTime.label} Match</p>
+                        <p>{selectedTime.label} • {selectedTime.time}</p>
                     </div>
                     <button className="btn-neon-outline" onClick={async () => {
                         await leaveQueue(currentUser.id, selectedTime.type);
@@ -189,52 +300,95 @@ const PlayPage = () => {
                         </div>
                     </div>
                 );
+
             case 'setup':
                 return (
                     <div className="game-setup">
-                        <h2 className="font-orbitron lobby-title">Setup: <span className="text-neon">{gameMode === 'bot' ? 'AI Match' : 'Arena Match'}</span></h2>
-                        <div className="setup-options">
-                            {gameMode === 'bot' ? (
-                                <div className="setup-section">
-                                    <h4 className="font-orbitron">Difficulty</h4>
-                                    <div className="difficulty-grid">
-                                        {Object.entries(DIFFICULTY_CONFIGS).map(([key, config]) => (
-                                            <button 
-                                                key={key} 
-                                                className={`diff-btn ${selectedDifficulty === key ? 'active' : ''}`}
+                        <button className="back-btn" onClick={() => {setScreen('lobby'); setGameMode(null);}}>
+                            <ArrowLeft size={18} /> Back to Arena
+                        </button>
+
+                        {gameMode === 'bot' ? (
+                            <>
+                                <h2 className="font-orbitron setup-title">
+                                    <Cpu size={28} className="text-neon" />
+                                    Select <span className="text-neon">Difficulty</span>
+                                </h2>
+                                <div className="difficulty-cards">
+                                    {Object.entries(DIFFICULTY_CONFIGS).map(([key, config]) => {
+                                        const Icon = config.icon;
+                                        const isSelected = selectedDifficulty === key;
+                                        return (
+                                            <button
+                                                key={key}
+                                                className={`diff-card ${isSelected ? 'active' : ''}`}
                                                 onClick={() => setSelectedDifficulty(key)}
-                                                style={{"--btn-accent": config.color}}
+                                                style={{"--card-accent": config.color}}
                                             >
-                                                {config.label}
+                                                <div className="diff-card-icon">
+                                                    <Icon size={32} />
+                                                </div>
+                                                <div className="diff-card-info">
+                                                    <h4>{config.label}</h4>
+                                                    <span className="diff-rating">{config.rating} ELO</span>
+                                                    <p>{config.desc}</p>
+                                                </div>
+                                                {isSelected && <CheckCircle2 size={20} className="diff-check" />}
                                             </button>
-                                        ))}
-                                    </div>
+                                        );
+                                    })}
                                 </div>
-                            ) : (
-                                <div className="setup-section">
-                                    <h4 className="font-orbitron">Time Control</h4>
-                                    <div className="time-grid">
-                                        {TIME_CONTROLS.map((tc) => (
-                                            <button 
-                                                key={tc.type} 
-                                                className={`time-btn ${selectedTime.type === tc.type ? 'active' : ''}`}
+                                <div className="setup-confirm">
+                                    <div className="confirm-summary glass-panel">
+                                        <span>Playing against</span>
+                                        <strong style={{color: DIFFICULTY_CONFIGS[selectedDifficulty].color}}>
+                                            {DIFFICULTY_CONFIGS[selectedDifficulty].label} ({DIFFICULTY_CONFIGS[selectedDifficulty].rating} ELO)
+                                        </strong>
+                                    </div>
+                                    <button className="btn-neon btn-start" onClick={startBotGame}>
+                                        <Swords size={20} /> Start Match
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="font-orbitron setup-title">
+                                    <Globe size={28} className="text-neon-purple" />
+                                    Select <span className="text-neon">Time Control</span>
+                                </h2>
+                                <div className="time-cards">
+                                    {TIME_CONTROLS.map((tc) => {
+                                        const Icon = tc.icon;
+                                        const isSelected = selectedTime.type === tc.type;
+                                        return (
+                                            <button
+                                                key={tc.type}
+                                                className={`time-card ${isSelected ? 'active' : ''}`}
                                                 onClick={() => setSelectedTime(tc)}
                                             >
-                                                {tc.label}
+                                                <Icon size={28} />
+                                                <h4>{tc.label}</h4>
+                                                <span className="time-value">{tc.time}</span>
+                                                <p>{tc.desc}</p>
+                                                {isSelected && <CheckCircle2 size={18} className="time-check" />}
                                             </button>
-                                        ))}
-                                    </div>
+                                        );
+                                    })}
                                 </div>
-                            )}
-                        </div>
-                        <div className="setup-actions">
-                            <button className="btn-neon" onClick={gameMode === 'bot' ? startBotGame : startOnlineMatch}>
-                                Start Match
-                            </button>
-                            <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameMode(null);}}>Back</button>
-                        </div>
+                                <div className="setup-confirm">
+                                    <div className="confirm-summary glass-panel">
+                                        <span>Mode</span>
+                                        <strong className="text-neon">{selectedTime.label} • {selectedTime.time}</strong>
+                                    </div>
+                                    <button className="btn-neon btn-start" onClick={startOnlineMatch}>
+                                        <Globe size={20} /> Find Match
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 );
+
             case 'game':
                 return (
                     <div className="game-screen">
@@ -247,16 +401,42 @@ const PlayPage = () => {
                         />
                         
                         <div className="game-info glass-panel">
-                            <div className="hud-header font-orbitron">Match Tracking</div>
+                            <div className="hud-header font-orbitron">
+                                {gameMode === 'bot' 
+                                    ? `vs ${DIFFICULTY_CONFIGS[selectedDifficulty].label}`
+                                    : 'Online Match'
+                                }
+                            </div>
+                            
+                            {gameMode === 'bot' && (
+                                <div className="bot-badge" style={{borderColor: DIFFICULTY_CONFIGS[selectedDifficulty].color}}>
+                                    <Cpu size={14} />
+                                    <span>{DIFFICULTY_CONFIGS[selectedDifficulty].rating} ELO</span>
+                                </div>
+                            )}
+
                             <div className="player-stats">
                                 <div className="stat-row">
                                     <Clock size={16} /> <span>{Math.floor(playerTime/60)}:{(playerTime%60).toString().padStart(2, '0')}</span>
                                 </div>
                             </div>
+
+                            {statusMessage && (
+                                <div className={`status-banner ${gameRef.current.isCheckmate() ? 'checkmate' : gameRef.current.isCheck() ? 'check' : ''}`}>
+                                    {statusMessage}
+                                </div>
+                            )}
+
                             <div className="game-actions">
-                                <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameState('idle');}}>
-                                    <Flag size={18} /> Resign
-                                </button>
+                                {gameState === 'ended' ? (
+                                    <button className="btn-neon" onClick={() => {setScreen('lobby'); setGameState('idle'); setStatusMessage('');}}>
+                                        <RotateCcw size={18} /> New Game
+                                    </button>
+                                ) : (
+                                    <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameState('idle'); setStatusMessage('');}}>
+                                        <Flag size={18} /> Resign
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
