@@ -151,26 +151,28 @@ const PlayPage = () => {
         }
     };
 
-    return (
-        <div className="play-page">
-            <div className="glass-panel play-container">
-                {searching && (
-                    <div className="searching-screen">
-                        <div className="loader font-orbitron">
-                            <Globe size={60} className="pulse-logo" />
-                            <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
-                            <p>{selectedTime.label} Match</p>
-                        </div>
-                        <button className="btn-neon-outline" onClick={async () => {
-                            await leaveQueue(currentUser.id, selectedTime.type);
-                            setSearching(false);
-                        }}>
-                            Cancel
-                        </button>
+    const renderScreen = () => {
+        if (searching) {
+            return (
+                <div className="searching-screen">
+                    <div className="loader font-orbitron">
+                        <Globe size={60} className="pulse-logo" />
+                        <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
+                        <p>{selectedTime.label} Match</p>
                     </div>
-                )}
+                    <button className="btn-neon-outline" onClick={async () => {
+                        await leaveQueue(currentUser.id, selectedTime.type);
+                        setSearching(false);
+                    }}>
+                        Cancel
+                    </button>
+                </div>
+            );
+        }
 
-                {screen === 'lobby' && !searching && (
+        switch (screen) {
+            case 'lobby':
+                return (
                     <div className="play-lobby">
                         <h2 className="lobby-title font-orbitron">Challenge <span className="text-neon">Arena</span></h2>
                         <div className="lobby-cards">
@@ -186,11 +188,11 @@ const PlayPage = () => {
                             </button>
                         </div>
                     </div>
-                )}
-
-                {screen === 'setup' && !searching && (
+                );
+            case 'setup':
+                return (
                     <div className="game-setup">
-                        <h3>Match <span className="text-neon">Settings</span></h3>
+                        <h2 className="font-orbitron lobby-title">Setup: <span className="text-neon">{gameMode === 'bot' ? 'AI Match' : 'Arena Match'}</span></h2>
                         <div className="setup-options">
                             {gameMode === 'bot' ? (
                                 <div className="setup-section">
@@ -229,20 +231,22 @@ const PlayPage = () => {
                             <button className="btn-neon" onClick={gameMode === 'bot' ? startBotGame : startOnlineMatch}>
                                 Start Match
                             </button>
-                            <button className="btn-neon-outline" onClick={() => setScreen('lobby')}>Back</button>
+                            <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameMode(null);}}>Back</button>
                         </div>
                     </div>
-                )}
-
-                {screen === 'game' && (
+                );
+            case 'game':
+                return (
                     <div className="game-screen">
-                        <ChessBoard 
-                            game={gameRef.current}
-                            position={board} 
-                            onMove={handleMove} 
-                            squareSize={boardWidth / 8} 
-                            orientation={playerColor === 'w' ? 'white' : 'black'}
-                        />
+                        <div className="board-shield">
+                            <ChessBoard 
+                                game={gameRef.current}
+                                position={board} 
+                                onMove={handleMove} 
+                                squareSize={boardWidth / 8} 
+                                orientation={playerColor === 'white' ? 'white' : 'black'}
+                            />
+                        </div>
                         
                         <div className="game-info glass-panel">
                             <div className="hud-header font-orbitron">Match Tracking</div>
@@ -252,13 +256,22 @@ const PlayPage = () => {
                                 </div>
                             </div>
                             <div className="game-actions">
-                                <button className="btn-neon-outline" onClick={() => setScreen('lobby')}>
+                                <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameState('idle');}}>
                                     <Flag size={18} /> Resign
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="play-page">
+            <div className="glass-panel play-container">
+                {renderScreen()}
             </div>
         </div>
     );
