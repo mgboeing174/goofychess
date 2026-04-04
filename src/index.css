@@ -77,25 +77,11 @@ h1, h2, h3, h4, .font-orbitron {
 /* Glassmorphism Classes */
 .glass-panel {
   background: var(--bg-card);
-  position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
-  overflow: visible;
-}
-
-.glass-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: inherit;
-  z-index: -1;
-  pointer-events: none;
 }
 
 .glass-panel:hover {

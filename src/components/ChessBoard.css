@@ -1,33 +1,14 @@
 .chessboard-container {
   padding: 10px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(10, 10, 20, 0.9);
   box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
   border: 1px solid var(--border-accent);
   width: fit-content;
   margin: 0 auto;
-  position: relative;
-  z-index: 1;
-  isolation: isolate; /* Crutial to fix coordinate distortion with backdrop-filter */
-  transform: translateZ(0); /* Create new rendering context without blur offset */
+  /* NO backdrop-filter, NO transform, NO isolation — these all break drag coordinates */
 }
 
 .chessboard-container:hover {
   box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
-}
-
-/* Stability fix for drag layer */
-[data-testid="drag-layer"] {
-  z-index: 9999;
-  pointer-events: none;
-}
-
-[data-testid="drag-layer"] [data-piece],
-.chessboard-container [data-piece] {
-  transition: transform 0s !important; /* Kill the animation during manual drag */
-  cursor: grabbing !important;
-}
-
-[data-testid="drag-layer"] > div {
-  transform: none !important; /* Force raw coordinates to fix flying pieces */
 }

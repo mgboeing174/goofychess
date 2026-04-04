@@ -238,15 +238,13 @@ const PlayPage = () => {
             case 'game':
                 return (
                     <div className="game-screen">
-                        <div className="board-shield">
-                            <ChessBoard 
-                                game={gameRef.current}
-                                position={board} 
-                                onMove={handleMove} 
-                                squareSize={boardWidth / 8} 
-                                orientation={playerColor === 'white' ? 'white' : 'black'}
-                            />
-                        </div>
+                        <ChessBoard 
+                            game={gameRef.current}
+                            position={board} 
+                            onMove={handleMove} 
+                            squareSize={boardWidth / 8} 
+                            orientation={playerColor === 'white' ? 'white' : 'black'}
+                        />
                         
                         <div className="game-info glass-panel">
                             <div className="hud-header font-orbitron">Match Tracking</div>
@@ -270,7 +268,7 @@ const PlayPage = () => {
 
     return (
         <div className="play-page">
-            <div className="glass-panel play-container">
+            <div className={`play-container ${screen !== 'game' ? 'glass-panel' : ''}`}>
                 {renderScreen()}
             </div>
         </div>

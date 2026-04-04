@@ -57,7 +57,7 @@ const ChessBoard = ({ game, position, onMove, squareSize, orientation = 'white' 
     };
 
     return (
-        <div className="chessboard-container glass-panel">
+        <div className="chessboard-container">
             <Chessboard 
                 position={position} 
                 onPieceDrop={onMove}
