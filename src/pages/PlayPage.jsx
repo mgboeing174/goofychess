@@ -136,6 +136,9 @@ const PlayPage = () => {
     const [gameState, setGameState] = useState('idle');
     const [playerColor, setPlayerColor] = useState('white');
     const [statusMessage, setStatusMessage] = useState('');
+    const [gameResult, setGameResult] = useState(null); // { winner, reason, moves, captures, checks }
+    const [moveStats, setMoveStats] = useState({ total: 0, captures: 0, checks: 0 });
+    const [showResultModal, setShowResultModal] = useState(false);
     
     // Timer
     const [playerTime, setPlayerTime] = useState(600);
@@ -151,6 +154,16 @@ const PlayPage = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    const endGame = (winner, reason) => {
+        setGameState('ended');
+        setGameResult({
+            winner, // 'player', 'bot', 'draw'
+            reason, // 'checkmate', 'stalemate', 'resignation', 'draw'
+            ...moveStats
+        });
+        setTimeout(() => setShowResultModal(true), 600);
+    };
 
     // ── Sound-aware move handler ───────────────────────────────
     const handleMove = (sourceSquare, targetSquare) => {
@@ -168,19 +181,23 @@ const PlayPage = () => {
             
             setBoard(gameRef.current.fen());
 
-            // Sound logic
+            // Track stats
+            const newStats = { ...moveStats, total: moveStats.total + 1 };
+            if (result.captured) newStats.captures++;
+            if (gameRef.current.isCheck()) newStats.checks++;
+            setMoveStats(newStats);
+
+            // Sound + end logic
             if (gameRef.current.isCheckmate()) {
                 playCheckmateSound();
-                setGameState('ended');
                 setStatusMessage('Checkmate! You win! 🏆');
-                addToast('Checkmate! You win!', 'success');
+                endGame('player', 'checkmate');
                 return true;
             }
             if (gameRef.current.isStalemate() || gameRef.current.isDraw()) {
                 playMoveSound();
-                setGameState('ended');
                 setStatusMessage('Draw!');
-                addToast('Game drawn!', 'info');
+                endGame('draw', gameRef.current.isStalemate() ? 'stalemate' : 'draw');
                 return true;
             }
             if (gameRef.current.isCheck()) {
@@ -209,16 +226,20 @@ const PlayPage = () => {
         const result = gameRef.current.move(moveSan);
         setBoard(gameRef.current.fen());
         
+        // Track bot stats too
+        const newStats = { ...moveStats, total: moveStats.total + 1 };
+        if (result.captured) newStats.captures++;
+        if (gameRef.current.isCheck()) newStats.checks++;
+        setMoveStats(newStats);
+
         if (gameRef.current.isCheckmate()) {
             playCheckmateSound();
-            setGameState('ended');
             setStatusMessage('Checkmate! Bot wins.');
-            addToast('Checkmate! Bot wins.', 'error');
+            endGame('bot', 'checkmate');
         } else if (gameRef.current.isStalemate() || gameRef.current.isDraw()) {
             playMoveSound();
-            setGameState('ended');
             setStatusMessage('Draw!');
-            addToast('Game drawn!', 'info');
+            endGame('draw', gameRef.current.isStalemate() ? 'stalemate' : 'draw');
         } else if (gameRef.current.isCheck()) {
             playCheckSound();
             setStatusMessage('Check!');
@@ -238,7 +259,24 @@ const PlayPage = () => {
         setGameMode('bot');
         setScreen('game');
         setStatusMessage('');
+        setGameResult(null);
+        setShowResultModal(false);
+        setMoveStats({ total: 0, captures: 0, checks: 0 });
         playGameStartSound();
+    };
+
+    const handleRematch = () => {
+        setShowResultModal(false);
+        setGameResult(null);
+        startBotGame();
+    };
+
+    const handleNewGame = () => {
+        setShowResultModal(false);
+        setGameResult(null);
+        setScreen('lobby');
+        setGameState('idle');
+        setStatusMessage('');
     };
 
     const startOnlineMatch = async () => {
@@ -429,11 +467,13 @@ const PlayPage = () => {
 
                             <div className="game-actions">
                                 {gameState === 'ended' ? (
-                                    <button className="btn-neon" onClick={() => {setScreen('lobby'); setGameState('idle'); setStatusMessage('');}}>
+                                    <button className="btn-neon" onClick={handleNewGame}>
                                         <RotateCcw size={18} /> New Game
                                     </button>
                                 ) : (
-                                    <button className="btn-neon-outline" onClick={() => {setScreen('lobby'); setGameState('idle'); setStatusMessage('');}}>
+                                    <button className="btn-neon-outline" onClick={() => {
+                                        endGame('bot', 'resignation');
+                                    }}>
                                         <Flag size={18} /> Resign
                                     </button>
                                 )}
@@ -446,11 +486,108 @@ const PlayPage = () => {
         }
     };
 
+    // ── Result Modal ───────────────────────────────────────────
+    const renderResultModal = () => {
+        if (!showResultModal || !gameResult) return null;
+
+        const isWin = gameResult.winner === 'player';
+        const isDraw = gameResult.winner === 'draw';
+        const title = isWin ? 'Victory!' : isDraw ? 'Draw!' : 'Defeat';
+        const subtitle = {
+            checkmate: 'by Checkmate',
+            stalemate: 'by Stalemate',
+            resignation: isWin ? 'by Resignation' : 'You Resigned',
+            draw: 'by Insufficient Material'
+        }[gameResult.reason] || '';
+
+        const eloChange = isWin ? '+15' : isDraw ? '+0' : '-12';
+
+        const resultMessages = {
+            player: [
+                'Dominant performance! 💪',
+                'Clean victory, well played!',
+                'You crushed it! Keep going!',
+                'Flawless execution! 🔥',
+            ],
+            bot: [
+                'Tough game. Analyze and improve!',
+                'The bot got lucky this time.',
+                'Learn from your mistakes!',
+                'Try again, you\'ve got this!',
+            ],
+            draw: [
+                'Evenly matched! Try again.',
+                'Neither side could break through.',
+                'A hard-fought draw!',
+            ]
+        };
+        const messages = resultMessages[gameResult.winner] || resultMessages.draw;
+        const message = messages[Math.floor(Math.random() * messages.length)];
+
+        return (
+            <div className="result-overlay" onClick={() => setShowResultModal(false)}>
+                <div className={`result-modal ${isWin ? 'win' : isDraw ? 'draw' : 'loss'}`} onClick={e => e.stopPropagation()}>
+                    <button className="result-close" onClick={() => setShowResultModal(false)}>✕</button>
+                    
+                    <div className="result-header">
+                        <div className={`result-icon ${isWin ? 'win' : isDraw ? 'draw' : 'loss'}`}>
+                            {isWin ? <Trophy size={48} /> : isDraw ? <Shield size={48} /> : <Flag size={48} />}
+                        </div>
+                        <h2 className="font-orbitron result-title">{title}</h2>
+                        <p className="result-subtitle">{subtitle}</p>
+                    </div>
+
+                    <div className="result-message">
+                        <p>{message}</p>
+                    </div>
+
+                    <div className="result-elo">
+                        <span>ELO Change</span>
+                        <strong className={isWin ? 'elo-up' : isDraw ? 'elo-neutral' : 'elo-down'}>{eloChange}</strong>
+                    </div>
+
+                    <div className="result-stats">
+                        <div className="result-stat">
+                            <div className="stat-number">{gameResult.total}</div>
+                            <div className="stat-label">Moves</div>
+                        </div>
+                        <div className="result-stat">
+                            <div className="stat-number">{gameResult.captures}</div>
+                            <div className="stat-label">Captures</div>
+                        </div>
+                        <div className="result-stat">
+                            <div className="stat-number">{gameResult.checks}</div>
+                            <div className="stat-label">Checks</div>
+                        </div>
+                    </div>
+
+                    {gameMode === 'bot' && (
+                        <div className="result-opponent">
+                            <Cpu size={16} /> Played vs <strong style={{color: DIFFICULTY_CONFIGS[selectedDifficulty].color}}>
+                                {DIFFICULTY_CONFIGS[selectedDifficulty].label} ({DIFFICULTY_CONFIGS[selectedDifficulty].rating})
+                            </strong>
+                        </div>
+                    )}
+
+                    <div className="result-actions">
+                        <button className="btn-neon btn-rematch" onClick={handleRematch}>
+                            <RotateCcw size={18} /> Rematch
+                        </button>
+                        <button className="btn-neon-outline" onClick={handleNewGame}>
+                            New Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="play-page">
             <div className={`play-container ${screen !== 'game' ? 'glass-panel' : ''}`}>
                 {renderScreen()}
             </div>
+            {renderResultModal()}
         </div>
     );
 };
