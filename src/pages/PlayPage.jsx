@@ -205,7 +205,7 @@ const PlayPage = () => {
     const [playerColor, setPlayerColor] = useState('white');
     const [statusMessage, setStatusMessage] = useState('');
     const [gameResult, setGameResult] = useState(null);
-    const [moveStats, setMoveStats] = useState({ total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 });
+    const moveStatsRef = useRef({ total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 });
     const [showResultModal, setShowResultModal] = useState(false);
     
     // Timer
@@ -226,9 +226,9 @@ const PlayPage = () => {
     const endGame = (winner, reason) => {
         setGameState('ended');
         setGameResult({
-            winner, // 'player', 'bot', 'draw'
-            reason, // 'checkmate', 'stalemate', 'resignation', 'draw'
-            ...moveStats
+            winner,
+            reason,
+            ...moveStatsRef.current
         });
         setTimeout(() => setShowResultModal(true), 600);
     };
@@ -250,14 +250,13 @@ const PlayPage = () => {
             setBoard(gameRef.current.fen());
 
             // Track stats
-            const newStats = { ...moveStats, total: moveStats.total + 1 };
-            if (result.captured) newStats.captures++;
-            if (gameRef.current.isCheck()) newStats.checks++;
+            moveStatsRef.current = { ...moveStatsRef.current, total: moveStatsRef.current.total + 1 };
+            if (result.captured) moveStatsRef.current.captures++;
+            if (gameRef.current.isCheck()) moveStatsRef.current.checks++;
 
             // Classify move quality
             const quality = classifyPlayerMove(gameRef.current, result);
-            newStats[quality]++;
-            setMoveStats(newStats);
+            moveStatsRef.current[quality]++;
 
             // Sound + end logic
             if (gameRef.current.isCheckmate()) {
@@ -299,10 +298,9 @@ const PlayPage = () => {
         setBoard(gameRef.current.fen());
         
         // Track bot stats too
-        const newStats = { ...moveStats, total: moveStats.total + 1 };
-        if (result.captured) newStats.captures++;
-        if (gameRef.current.isCheck()) newStats.checks++;
-        setMoveStats(newStats);
+        moveStatsRef.current = { ...moveStatsRef.current, total: moveStatsRef.current.total + 1 };
+        if (result.captured) moveStatsRef.current.captures++;
+        if (gameRef.current.isCheck()) moveStatsRef.current.checks++;
 
         if (gameRef.current.isCheckmate()) {
             playCheckmateSound();
@@ -333,7 +331,7 @@ const PlayPage = () => {
         setStatusMessage('');
         setGameResult(null);
         setShowResultModal(false);
-        setMoveStats({ total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 });
+        moveStatsRef.current = { total: 0, captures: 0, checks: 0, brilliant: 0, excellent: 0, great: 0, good: 0, miss: 0, blunder: 0 };
         playGameStartSound();
     };
 
