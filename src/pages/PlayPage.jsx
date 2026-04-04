@@ -61,6 +61,7 @@ const PlayPage = () => {
     const [playerTime, setPlayerTime] = useState(600);
     const [opponentTime, setOpponentTime] = useState(600);
     const timerRef = useRef(null);
+    const [searching, setSearching] = useState(false);
 
     // Responsive board width
     const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 60, 560));
@@ -128,10 +129,48 @@ const PlayPage = () => {
         setScreen('game');
     };
 
+    const startOnlineMatch = async () => {
+        if (!currentUser) return;
+        setSearching(true);
+        try {
+            await joinQueue(currentUser.id, selectedTime.type);
+            addToast('Searching for opponent...', 'info');
+            
+            // Start listening for game assignment
+            listenForMyGame(currentUser.id, (gameData) => {
+                if (gameData) {
+                    setSearching(false);
+                    setGameState('playing');
+                    setScreen('game');
+                    // Additional game setup logic here (board orientation, etc.)
+                }
+            });
+        } catch (error) {
+            setSearching(false);
+            addToast('Matchmaking failed', 'error');
+        }
+    };
+
     return (
         <div className="play-page">
             <div className="glass-panel play-container">
-                {screen === 'lobby' && (
+                {searching && (
+                    <div className="searching-screen">
+                        <div className="loader font-orbitron">
+                            <Globe size={60} className="pulse-logo" />
+                            <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
+                            <p>{selectedTime.label} Match</p>
+                        </div>
+                        <button className="btn-neon-outline" onClick={async () => {
+                            await leaveQueue(currentUser.id, selectedTime.type);
+                            setSearching(false);
+                        }}>
+                            Cancel
+                        </button>
+                    </div>
+                )}
+
+                {screen === 'lobby' && !searching && (
                     <div className="play-lobby">
                         <h2 className="lobby-title font-orbitron">Challenge <span className="text-neon">Arena</span></h2>
                         <div className="lobby-cards">
@@ -149,13 +188,13 @@ const PlayPage = () => {
                     </div>
                 )}
 
-                {screen === 'setup' && (
+                {screen === 'setup' && !searching && (
                     <div className="game-setup">
                         <h3>Match <span className="text-neon">Settings</span></h3>
                         <div className="setup-options">
                             {gameMode === 'bot' ? (
                                 <div className="setup-section">
-                                    <label>Difficulty</label>
+                                    <h4 className="font-orbitron">Difficulty</h4>
                                     <div className="difficulty-grid">
                                         {Object.entries(DIFFICULTY_CONFIGS).map(([key, config]) => (
                                             <button 
@@ -171,7 +210,7 @@ const PlayPage = () => {
                                 </div>
                             ) : (
                                 <div className="setup-section">
-                                    <label>Time Control</label>
+                                    <h4 className="font-orbitron">Time Control</h4>
                                     <div className="time-grid">
                                         {TIME_CONTROLS.map((tc) => (
                                             <button 
@@ -187,7 +226,7 @@ const PlayPage = () => {
                             )}
                         </div>
                         <div className="setup-actions">
-                            <button className="btn-neon" onClick={gameMode === 'bot' ? startBotGame : () => {}}>
+                            <button className="btn-neon" onClick={gameMode === 'bot' ? startBotGame : startOnlineMatch}>
                                 Start Match
                             </button>
                             <button className="btn-neon-outline" onClick={() => setScreen('lobby')}>Back</button>
@@ -198,6 +237,7 @@ const PlayPage = () => {
                 {screen === 'game' && (
                     <div className="game-screen">
                         <ChessBoard 
+                            game={gameRef.current}
                             position={board} 
                             onMove={handleMove} 
                             squareSize={boardWidth / 8} 
