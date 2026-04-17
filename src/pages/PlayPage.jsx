@@ -431,16 +431,36 @@ const PlayPage = () => {
         switch (screen) {
             case 'lobby':
                 return (
-                    <div className="play-arena">
-                        <h2 className="arena-title font-orbitron">Challenge <span className="text-neon">Arena</span></h2>
-                        <div className="arena-columns">
-                            {/* ── Bot Column ── */}
-                            <div className="arena-section glass-panel">
-                                <div className="arena-section-header">
-                                    <Cpu size={24} className="text-neon" />
-                                    <h3 className="font-orbitron">Play vs <span className="text-neon">Bot</span></h3>
-                                </div>
-                                <p className="arena-section-desc">Practice against our AI engine</p>
+                    <div className="play-lobby">
+                        <h2 className="lobby-title font-orbitron">Challenge <span className="text-neon">Arena</span></h2>
+                        <div className="lobby-cards">
+                            <button onClick={() => { setGameMode('bot'); setScreen('setup'); }} className="lobby-card glass-panel">
+                                <Cpu size={44} className="text-neon" />
+                                <h3>Play vs Bot</h3>
+                                <p>Practice your skills against our AI engine</p>
+                            </button>
+                            <button onClick={() => { setGameMode('online'); setScreen('setup'); }} className="lobby-card glass-panel">
+                                <Globe size={44} className="text-neon-purple" />
+                                <h3>Play Online</h3>
+                                <p>Compete with players around the world</p>
+                            </button>
+                        </div>
+                    </div>
+                );
+
+            case 'setup':
+                return (
+                    <div className="game-setup">
+                        <button className="back-btn" onClick={() => { setScreen('lobby'); setGameMode(null); }}>
+                            <ArrowLeft size={18} /> Back to Arena
+                        </button>
+
+                        {gameMode === 'bot' ? (
+                            <>
+                                <h2 className="font-orbitron setup-title">
+                                    <Cpu size={26} className="text-neon" />
+                                    Select <span className="text-neon">Difficulty</span>
+                                </h2>
                                 <div className="difficulty-cards">
                                     {Object.entries(DIFFICULTY_CONFIGS).map(([key, config]) => {
                                         const Icon = config.icon;
@@ -465,18 +485,24 @@ const PlayPage = () => {
                                         );
                                     })}
                                 </div>
-                                <button className="btn-neon btn-start" onClick={startBotGame}>
-                                    <Swords size={20} /> Start Match
-                                </button>
-                            </div>
-
-                            {/* ── Online Column ── */}
-                            <div className="arena-section glass-panel">
-                                <div className="arena-section-header">
-                                    <Globe size={24} className="text-neon-purple" />
-                                    <h3 className="font-orbitron">Play <span className="text-neon">Online</span></h3>
+                                <div className="setup-confirm">
+                                    <div className="confirm-summary glass-panel">
+                                        <span>Playing against</span>
+                                        <strong style={{color: DIFFICULTY_CONFIGS[selectedDifficulty].color}}>
+                                            {DIFFICULTY_CONFIGS[selectedDifficulty].label} ({DIFFICULTY_CONFIGS[selectedDifficulty].rating} ELO)
+                                        </strong>
+                                    </div>
+                                    <button className="btn-neon btn-start" onClick={startBotGame}>
+                                        <Swords size={20} /> Start Match
+                                    </button>
                                 </div>
-                                <p className="arena-section-desc">Compete with players worldwide</p>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="font-orbitron setup-title">
+                                    <Globe size={26} className="text-neon-purple" />
+                                    Select <span className="text-neon">Time Control</span>
+                                </h2>
                                 <div className="time-cards-compact">
                                     {TIME_CONTROLS.map((tc) => {
                                         const Icon = tc.icon;
@@ -497,11 +523,17 @@ const PlayPage = () => {
                                         );
                                     })}
                                 </div>
-                                <button className="btn-neon btn-start" onClick={startOnlineMatch}>
-                                    <Globe size={20} /> Find Match
-                                </button>
-                            </div>
-                        </div>
+                                <div className="setup-confirm">
+                                    <div className="confirm-summary glass-panel">
+                                        <span>Mode</span>
+                                        <strong className="text-neon">{selectedTime.label} • {selectedTime.time}</strong>
+                                    </div>
+                                    <button className="btn-neon btn-start" onClick={startOnlineMatch}>
+                                        <Globe size={20} /> Find Match
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 );
 
