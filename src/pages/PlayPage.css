@@ -7,65 +7,115 @@
   justify-content: center;
 }
 
-/* ── Lobby ── */
-.lobby-title {
-  font-size: 2.5rem;
-  margin-bottom: 40px;
+/* ── Unified Arena ── */
+.arena-title {
+  font-size: 2rem;
+  margin-bottom: 32px;
   text-align: center;
 }
 
-.lobby-cards {
+.arena-columns {
   display: flex;
-  gap: 30px;
-}
-
-.lobby-card {
-  flex: 1;
-  padding: 40px;
-  text-align: center;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-.lobby-card:hover {
-  transform: translateY(-10px);
-  border-color: var(--accent);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
-}
-
-.lobby-card h3 {
-  font-size: 1.5rem;
-  margin: 20px 0 10px;
-}
-
-.lobby-card p {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-/* ── Setup Screen ── */
-.game-setup {
+  gap: 24px;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
 }
 
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.85rem;
-  margin-bottom: 20px;
-  transition: color 0.2s;
+.arena-section {
+  flex: 1;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
 }
-.back-btn:hover {
+
+.arena-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.arena-section-header h3 {
+  font-size: 1rem;
+}
+
+.arena-section-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.arena-section .btn-start {
+  margin-top: auto;
+  padding: 14px 20px;
+  width: 100%;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+/* Compact time cards for online */
+.time-cards-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.time-card-sm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+  position: relative;
+}
+
+.time-card-sm:hover {
+  border-color: var(--accent);
+  background: rgba(0, 243, 255, 0.04);
+}
+
+.time-card-sm.active {
+  border-color: var(--accent);
+  background: rgba(0, 243, 255, 0.06);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.time-card-sm-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.time-card-sm-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.time-card-sm-value {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.time-check-sm {
+  position: absolute;
+  right: 12px;
   color: var(--accent);
 }
 
+/* ── Setup Screen (kept for any legacy routes) ── */
 .setup-title {
   font-size: 1.6rem;
   display: flex;
@@ -342,15 +392,14 @@
     align-items: center;
   }
   .game-info { width: 100%; max-width: 500px; }
-  .time-cards { grid-template-columns: repeat(2, 1fr); }
+  .arena-columns { flex-direction: column; max-width: 450px; margin: 0 auto; }
 }
 
 @media (max-width: 600px) {
-  .lobby-cards { flex-direction: column; }
   .play-container { padding: 20px; }
-  .lobby-title { font-size: 1.8rem; }
-  .setup-confirm { flex-direction: column; }
-  .time-cards { grid-template-columns: 1fr 1fr; }
+  .arena-title { font-size: 1.5rem; }
+  .arena-columns { gap: 16px; }
+  .arena-section { padding: 20px 16px; }
 }
 
 /* ══════════════════════════════════════════════════════════════

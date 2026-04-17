@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from '../components/ChessBoard';
-import { Trophy, Target, ChevronRight, CheckCircle2, Lock, Zap, ArrowLeft, Lightbulb, RotateCcw, Star } from 'lucide-react';
+import { Trophy, CheckCircle2, Zap, ArrowLeft, Lightbulb, RotateCcw, ChevronRight, Star, Lock } from 'lucide-react';
 import puzzles from '../data/puzzles';
 import { playMoveSound, playCheckSound, playCheckmateSound, playIllegalMoveSound, playGameStartSound } from '../sounds';
 import './PuzzlesPage.css';
@@ -14,7 +14,7 @@ const DIFFICULTY_COLORS = {
 };
 
 const PuzzlesPage = () => {
-    const [screen, setScreen] = useState('list'); // 'list' | 'puzzle'
+    const [screen, setScreen] = useState('roadmap'); // 'roadmap' | 'puzzle'
     const [activePuzzle, setActivePuzzle] = useState(null);
     const [solvedPuzzles, setSolvedPuzzles] = useState(() => {
         try {
@@ -39,7 +39,13 @@ const PuzzlesPage = () => {
         localStorage.setItem('solvedPuzzles', JSON.stringify(solvedPuzzles));
     }, [solvedPuzzles]);
 
+    const isUnlocked = (puzzleId) => {
+        if (puzzleId === 1) return true;
+        return solvedPuzzles.includes(puzzleId - 1);
+    };
+
     const startPuzzle = (puzzle) => {
+        if (!isUnlocked(puzzle.id)) return;
         setActivePuzzle(puzzle);
         gameRef.current = new Chess(puzzle.fen);
         setBoard(gameRef.current.fen());
@@ -73,13 +79,11 @@ const PuzzlesPage = () => {
                 return false;
             }
 
-            // Check if the move matches the expected solution
             const expectedSan = activePuzzle.moves[moveIndex];
             if (result.san === expectedSan) {
                 setBoard(gameRef.current.fen());
 
                 if (moveIndex + 1 >= activePuzzle.moves.length) {
-                    // Puzzle solved!
                     if (gameRef.current.isCheckmate()) {
                         playCheckmateSound();
                     } else if (gameRef.current.isCheck()) {
@@ -92,14 +96,12 @@ const PuzzlesPage = () => {
                         setSolvedPuzzles(prev => [...prev, activePuzzle.id]);
                     }
                 } else {
-                    // Correct move but puzzle continues — play opponent response
                     if (gameRef.current.isCheck()) {
                         playCheckSound();
                     } else {
                         playMoveSound();
                     }
                     setMoveIndex(prev => prev + 1);
-                    // Auto-play opponent response if there is one
                     if (moveIndex + 1 < activePuzzle.moves.length) {
                         setTimeout(() => {
                             const oppMove = activePuzzle.moves[moveIndex + 1];
@@ -112,7 +114,6 @@ const PuzzlesPage = () => {
                 }
                 return true;
             } else {
-                // Wrong move
                 gameRef.current.undo();
                 setBoard(gameRef.current.fen());
                 playIllegalMoveSound();
@@ -136,70 +137,115 @@ const PuzzlesPage = () => {
         if (idx < puzzles.length - 1) {
             startPuzzle(puzzles[idx + 1]);
         } else {
-            setScreen('list');
+            setScreen('roadmap');
         }
     };
 
-    // Determine whose turn it is from FEN
     const getTurnColor = () => {
         if (!activePuzzle) return 'white';
-        const fen = activePuzzle.fen;
-        return fen.split(' ')[1] === 'w' ? 'white' : 'black';
+        return activePuzzle.fen.split(' ')[1] === 'w' ? 'white' : 'black';
     };
 
-    // ── List Screen ────────────────────────────────────────────
-    if (screen === 'list') {
+    // Find the "current" puzzle (first unsolved unlocked)
+    const currentPuzzleId = puzzles.find(p => isUnlocked(p.id) && !solvedPuzzles.includes(p.id))?.id || puzzles[puzzles.length - 1].id;
+
+    // ── Roadmap Screen ──────────────────────────────────────────
+    if (screen === 'roadmap') {
         return (
             <div className="puzzles-page">
                 <header className="pz-page-header">
-                    <h2 className="font-orbitron">Puzzle <span className="text-neon">Trainer</span></h2>
+                    <h2 className="font-orbitron">Puzzle <span className="text-neon">Path</span></h2>
                     <div className="pz-progress-badge">
                         <Trophy size={16} />
                         <span>{solvedPuzzles.length}/{puzzles.length} Solved</span>
                     </div>
                 </header>
 
-                <div className="pz-grid">
-                    {puzzles.map((puzzle) => {
-                        const isSolved = solvedPuzzles.includes(puzzle.id);
-                        const diffColor = DIFFICULTY_COLORS[puzzle.difficulty] || '#00f3ff';
-                        return (
-                            <button
-                                key={puzzle.id}
-                                className={`pz-card glass-panel ${isSolved ? 'solved' : ''}`}
-                                onClick={() => startPuzzle(puzzle)}
-                            >
-                                <div className="pz-card-top">
-                                    <span className="pz-card-number" style={{ color: diffColor }}>#{puzzle.id}</span>
-                                    {isSolved && <CheckCircle2 size={18} className="pz-solved-icon" />}
+                <div className="roadmap-container">
+                    <div className="roadmap-track">
+                        {puzzles.map((puzzle, idx) => {
+                            const solved = solvedPuzzles.includes(puzzle.id);
+                            const unlocked = isUnlocked(puzzle.id);
+                            const isCurrent = puzzle.id === currentPuzzleId;
+                            const isLeft = idx % 2 === 0;
+                            const diffColor = DIFFICULTY_COLORS[puzzle.difficulty] || '#00f3ff';
+
+                            return (
+                                <div key={puzzle.id} className="roadmap-row">
+                                    {/* Connector line (not on first) */}
+                                    {idx > 0 && (
+                                        <div className={`roadmap-connector ${solved ? 'solved' : ''}`}>
+                                            <svg width="40" height="60" viewBox="0 0 40 60">
+                                                <path
+                                                    d={isLeft ? "M20 0 Q 20 30, 20 60" : "M20 0 Q 20 30, 20 60"}
+                                                    stroke={solved ? '#00c853' : 'rgba(0,243,255,0.15)'}
+                                                    strokeWidth="3"
+                                                    fill="none"
+                                                    strokeDasharray={solved ? 'none' : '6 4'}
+                                                />
+                                            </svg>
+                                        </div>
+                                    )}
+
+                                    {/* Node */}
+                                    <button
+                                        className={`roadmap-node ${solved ? 'solved' : ''} ${isCurrent ? 'current' : ''} ${!unlocked ? 'locked' : ''}`}
+                                        onClick={() => startPuzzle(puzzle)}
+                                        disabled={!unlocked}
+                                        style={{ '--node-color': diffColor }}
+                                    >
+                                        <div className="roadmap-node-circle">
+                                            {solved ? (
+                                                <CheckCircle2 size={24} />
+                                            ) : !unlocked ? (
+                                                <Lock size={18} />
+                                            ) : (
+                                                <span className="roadmap-node-number">{puzzle.id}</span>
+                                            )}
+                                        </div>
+                                        <div className="roadmap-node-info">
+                                            <span className="roadmap-node-title">{puzzle.title}</span>
+                                            <div className="roadmap-node-meta">
+                                                <span className="roadmap-node-rating">
+                                                    <Zap size={11} /> {puzzle.rating}
+                                                </span>
+                                                <span className="roadmap-node-theme" style={{ color: diffColor, borderColor: diffColor }}>
+                                                    {puzzle.theme}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {unlocked && !solved && (
+                                            <ChevronRight size={18} className="roadmap-node-arrow" />
+                                        )}
+                                    </button>
                                 </div>
-                                <h4 className="pz-card-title">{puzzle.title}</h4>
-                                <div className="pz-card-meta">
-                                    <span className="pz-card-rating">
-                                        <Zap size={12} /> {puzzle.rating}
-                                    </span>
-                                    <span className="pz-card-theme" style={{ color: diffColor, borderColor: diffColor }}>
-                                        {puzzle.theme}
-                                    </span>
-                                </div>
-                                <p className="pz-card-desc">{puzzle.description}</p>
-                                <div className="pz-card-diff" style={{ color: diffColor }}>
-                                    {puzzle.difficulty}
-                                </div>
-                            </button>
-                        );
-                    })}
+                            );
+                        })}
+
+                        {/* End trophy */}
+                        <div className="roadmap-row">
+                            <div className={`roadmap-connector ${solvedPuzzles.length === puzzles.length ? 'solved' : ''}`}>
+                                <svg width="40" height="60" viewBox="0 0 40 60">
+                                    <path d="M20 0 Q 20 30, 20 60" stroke={solvedPuzzles.length === puzzles.length ? '#f5c842' : 'rgba(0,243,255,0.1)'} strokeWidth="3" fill="none" strokeDasharray={solvedPuzzles.length === puzzles.length ? 'none' : '6 4'} />
+                                </svg>
+                            </div>
+                            <div className={`roadmap-trophy ${solvedPuzzles.length === puzzles.length ? 'complete' : ''}`}>
+                                <Trophy size={32} />
+                                <span className="font-orbitron">Master</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // ── Puzzle Screen ──────────────────────────────────────────
+    // ── Active Puzzle Screen ────────────────────────────────────
     return (
         <div className="puzzles-page">
             <div className="pz-active">
-                <button className="back-btn" onClick={() => setScreen('list')}>
-                    <ArrowLeft size={18} /> Back to Puzzles
+                <button className="back-btn" onClick={() => setScreen('roadmap')}>
+                    <ArrowLeft size={18} /> Back to Path
                 </button>
 
                 <div className="pz-game-layout">
@@ -212,7 +258,6 @@ const PuzzlesPage = () => {
                             orientation={getTurnColor()}
                         />
 
-                        {/* Success Overlay */}
                         {puzzleState === 'success' && (
                             <div className="pz-result-overlay success">
                                 <div className="pz-result-content">
@@ -223,11 +268,10 @@ const PuzzlesPage = () => {
                             </div>
                         )}
 
-                        {/* Fail Overlay */}
                         {puzzleState === 'fail' && (
                             <div className="pz-result-overlay fail">
                                 <div className="pz-result-content">
-                                    <Target size={48} />
+                                    <div className="pz-fail-x">✕</div>
                                     <h3>Not Quite</h3>
                                     <p>That wasn't the best move</p>
                                 </div>
