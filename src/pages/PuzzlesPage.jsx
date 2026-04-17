@@ -80,7 +80,8 @@ const PuzzlesPage = () => {
             }
 
             const expectedSan = activePuzzle.moves[moveIndex];
-            if (result.san === expectedSan) {
+            const normalize = (san) => san.replace(/[+#]/g, '');
+            if (normalize(result.san) === normalize(expectedSan)) {
                 setBoard(gameRef.current.fen());
 
                 if (moveIndex + 1 >= activePuzzle.moves.length) {
