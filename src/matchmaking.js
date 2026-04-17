@@ -163,3 +163,13 @@ export const endOnlineGame = async (gameId, winnerUid, reason) => {
         result: { winner: winnerUid, reason },
     });
 };
+
+export const listenToGameState = (gameId, onUpdate) => {
+    if (!isConfigured || !db || !gameId) return () => {};
+    const gameRef = ref(db, `games/${gameId}`);
+    const unsub = onValue(gameRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) onUpdate(data);
+    });
+    return unsub;
+};

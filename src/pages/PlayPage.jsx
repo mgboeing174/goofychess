@@ -1,28 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { useStore } from '../store';
 import ChessBoard from '../components/ChessBoard';
-import { calculateEloChange, analyzeGame } from '../chessEngine';
 import { 
     joinQueue, 
     leaveQueue, 
     watchQueue, 
     listenForMyGame, 
-    listenToGameState, 
     submitMove, 
     endOnlineGame 
 } from '../matchmaking';
 import { 
-    Play, 
     Trophy, 
     Clock, 
     Cpu, 
-    User,
-    ChevronRight, 
     RotateCcw, 
     Flag, 
-    Send,
-    LogOut,
     CheckCircle2,
     Globe,
     Zap,
@@ -31,6 +24,7 @@ import {
     Swords,
     ArrowLeft
 } from 'lucide-react';
+import { BrilliantIcon, GreatIcon, GoodIcon, ExcellentIcon, MissIcon, BlunderIcon } from '../components/MoveQualityIcons';
 import { playMoveSound, playCaptureSound, playCheckSound, playCheckmateSound, playGameStartSound, playIllegalMoveSound } from '../sounds';
 import './PlayPage.css';
 
@@ -214,13 +208,22 @@ const PlayPage = () => {
     const timerRef = useRef(null);
     const [searching, setSearching] = useState(false);
 
+    // Online game refs (for cleanup)
+    const onlineQueueRef = useRef(null); // { entryKey, queuePath }
+    const onlineUnsubRef = useRef(null); // unsub function from watchQueue
+    const onlineGameIdRef = useRef(null);
+
     // Responsive board width
     const [boardWidth, setBoardWidth] = useState(Math.min(window.innerWidth - 80, 560));
 
     useEffect(() => {
         const handleResize = () => setBoardWidth(Math.min(window.innerWidth - 80, 560));
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            // Cleanup online listeners on unmount
+            if (onlineUnsubRef.current) onlineUnsubRef.current();
+        };
     }, []);
 
     const endGame = (winner, reason) => {
@@ -261,7 +264,7 @@ const PlayPage = () => {
             // Sound + end logic
             if (gameRef.current.isCheckmate()) {
                 playCheckmateSound();
-                setStatusMessage('Checkmate! You win! 🏆');
+                setStatusMessage('Checkmate! You win!');
                 endGame('player', 'checkmate');
                 return true;
             }
@@ -353,20 +356,59 @@ const PlayPage = () => {
         if (!currentUser) return;
         setSearching(true);
         try {
-            await joinQueue(currentUser.id, selectedTime.type);
+            // Pass full user + time control objects
+            const { entryKey, queuePath } = await joinQueue(currentUser, selectedTime);
+            onlineQueueRef.current = { entryKey, queuePath };
             addToast('Searching for opponent...', 'info');
-            listenForMyGame(currentUser.id, (gameData) => {
-                if (gameData) {
+
+            // Watch queue for an opponent match
+            const unsub = watchQueue(currentUser, selectedTime, entryKey, queuePath, (matchData) => {
+                if (matchData) {
+                    onlineGameIdRef.current = matchData.gameId;
+                    setPlayerColor(matchData.color === 'w' ? 'white' : 'black');
                     setSearching(false);
                     setGameState('playing');
+                    setGameMode('online');
                     setScreen('game');
                     playGameStartSound();
                 }
             });
+            onlineUnsubRef.current = unsub;
+
+            // Also listen for game creation (covers being the 2nd player)
+            const unsubGame = listenForMyGame(currentUser.id || currentUser.uid, (matchData) => {
+                if (matchData) {
+                    onlineGameIdRef.current = matchData.gameId;
+                    setPlayerColor(matchData.color === 'w' ? 'white' : 'black');
+                    setSearching(false);
+                    setGameState('playing');
+                    setGameMode('online');
+                    setScreen('game');
+                    playGameStartSound();
+                    // Stop watching queue
+                    if (onlineUnsubRef.current) onlineUnsubRef.current();
+                }
+            });
+            // Chain cleanup
+            const prevUnsub = onlineUnsubRef.current;
+            onlineUnsubRef.current = () => { prevUnsub(); unsubGame(); };
         } catch (error) {
             setSearching(false);
-            addToast('Matchmaking failed', 'error');
+            addToast('Matchmaking failed. Check your connection.', 'error');
         }
+    };
+
+    const cancelSearch = async () => {
+        if (onlineUnsubRef.current) {
+            onlineUnsubRef.current();
+            onlineUnsubRef.current = null;
+        }
+        if (onlineQueueRef.current) {
+            const { queuePath, entryKey } = onlineQueueRef.current;
+            await leaveQueue(queuePath, entryKey);
+            onlineQueueRef.current = null;
+        }
+        setSearching(false);
     };
 
     // ── Render ──────────────────────────────────────────────────
@@ -379,10 +421,7 @@ const PlayPage = () => {
                         <h3>Searching for <span className="text-neon">Opponent</span>...</h3>
                         <p>{selectedTime.label} • {selectedTime.time}</p>
                     </div>
-                    <button className="btn-neon-outline" onClick={async () => {
-                        await leaveQueue(currentUser.id, selectedTime.type);
-                        setSearching(false);
-                    }}>
+                    <button className="btn-neon-outline" onClick={cancelSearch}>
                         Cancel
                     </button>
                 </div>
@@ -574,10 +613,10 @@ const PlayPage = () => {
 
         const resultMessages = {
             player: [
-                'Dominant performance! 💪',
+                'Dominant performance!',
                 'Clean victory, well played!',
                 'You crushed it! Keep going!',
-                'Flawless execution! 🔥',
+                'Flawless execution!',
             ],
             bot: [
                 'Tough game. Analyze and improve!',
@@ -634,33 +673,33 @@ const PlayPage = () => {
                     <div className="quality-grid">
                         {gameResult.brilliant > 0 && (
                             <div className="quality-item brilliant">
-                                <span className="quality-icon">!!</span>
+                                <span className="quality-icon"><BrilliantIcon size={22} /></span>
                                 <span className="quality-count">{gameResult.brilliant}</span>
                                 <span className="quality-label">Brilliant</span>
                             </div>
                         )}
                         <div className="quality-item excellent">
-                            <span className="quality-icon">★</span>
+                            <span className="quality-icon"><ExcellentIcon size={22} /></span>
                             <span className="quality-count">{gameResult.excellent}</span>
                             <span className="quality-label">Excellent</span>
                         </div>
                         <div className="quality-item great">
-                            <span className="quality-icon">!</span>
+                            <span className="quality-icon"><GreatIcon size={22} /></span>
                             <span className="quality-count">{gameResult.great}</span>
                             <span className="quality-label">Great</span>
                         </div>
                         <div className="quality-item good">
-                            <span className="quality-icon">👍</span>
+                            <span className="quality-icon"><GoodIcon size={22} /></span>
                             <span className="quality-count">{gameResult.good}</span>
                             <span className="quality-label">Good</span>
                         </div>
                         <div className="quality-item miss">
-                            <span className="quality-icon">?</span>
+                            <span className="quality-icon"><MissIcon size={22} /></span>
                             <span className="quality-count">{gameResult.miss}</span>
-                            <span className="quality-label">Miss</span>
+                            <span className="quality-label">Mistake</span>
                         </div>
                         <div className="quality-item blunder">
-                            <span className="quality-icon">??</span>
+                            <span className="quality-icon"><BlunderIcon size={22} /></span>
                             <span className="quality-count">{gameResult.blunder}</span>
                             <span className="quality-label">Blunder</span>
                         </div>
