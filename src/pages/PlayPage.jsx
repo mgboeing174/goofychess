@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Chess } from 'chess.js';
 import { useStore } from '../store';
 import ChessBoard from '../components/ChessBoard';
@@ -186,9 +187,13 @@ const PlayPage = () => {
     const { state, dispatch, addToast } = useStore();
     const { currentUser } = state;
 
+    // Read URL params for direct navigation from HomePage
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialMode = searchParams.get('mode'); // 'bot' or 'online'
+
     // Screen state
-    const [screen, setScreen] = useState('lobby');
-    const [gameMode, setGameMode] = useState(null);
+    const [screen, setScreen] = useState(initialMode ? 'setup' : 'lobby');
+    const [gameMode, setGameMode] = useState(initialMode || null);
     const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
     const [selectedTime, setSelectedTime] = useState(TIME_CONTROLS[1]);
     

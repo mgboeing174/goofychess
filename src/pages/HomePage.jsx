@@ -32,7 +32,7 @@ const HomePage = () => {
             <section className="home-main-grid">
                 {/* Action Cards */}
                 <div className="action-cards">
-                    <Link to="/play" className="action-card glass-panel" style={{"--card-accent": "var(--accent)"}}>
+                    <Link to="/play?mode=bot" className="action-card glass-panel" style={{"--card-accent": "var(--accent)"}}>
                         <div className="card-icon"><Swords size={32} /></div>
                         <div className="card-info">
                             <h3>Play vs Bot</h3>
@@ -41,7 +41,7 @@ const HomePage = () => {
                         <ChevronRight className="card-arrow" />
                     </Link>
 
-                    <Link to="/play" className="action-card glass-panel" style={{"--card-accent": "var(--neon-purple)"}}>
+                    <Link to="/play?mode=online" className="action-card glass-panel" style={{"--card-accent": "var(--neon-purple)"}}>
                         <div className="card-icon"><Users size={32} /></div>
                         <div className="card-info">
                             <h3>Play Online</h3>
